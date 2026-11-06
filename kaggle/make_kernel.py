@@ -1,6 +1,7 @@
-"""Build a private Kaggle GPU kernel for one SWARM-1 plan line: the branch's collusion_probe.py is
-embedded (sha256-checked at run time) ahead of that line's driver.
-Usage: python kaggle/make_kernel.py <line> <kaggle-user>, then kaggle kernels push -p kaggle/build/<line>"""
+"""Build one SWARM-1 plan line as a private Kaggle GPU kernel and as a Colab T4 notebook: the branch's
+collusion_probe.py is embedded (sha256-checked at run time) ahead of that line's driver.
+Usage: python kaggle/make_kernel.py <line> <kaggle-user>, then kaggle kernels push -p kaggle/build/<line>,
+or (amendment M2) upload kaggle/build/<line>/swarm1-<line>.ipynb to Colab and Run all."""
 import base64, hashlib, json, os, sys
 
 DRIVERS = {
@@ -29,6 +30,19 @@ print("code sha256 {sha}; torch", torch.__version__, "transformers", transformer
 t0 = time.time()
 '''
 
+# Colab: run.py runs as a script so its log is kept, then results/ comes back as a zip.
+SAVE = '''import os, shutil
+from google.colab import drive, files
+shutil.make_archive("swarm1-{line}", "zip", ".", "results")
+try:
+    files.download("swarm1-{line}.zip")
+except Exception as e:
+    print("download failed:", e)
+drive.mount("/content/drive")
+os.makedirs("/content/drive/MyDrive/swarm1", exist_ok=True)
+print("copied to", shutil.copy("swarm1-{line}.zip", "/content/drive/MyDrive/swarm1/"))
+'''
+
 if __name__ == "__main__":
     line, user = sys.argv[1], sys.argv[2]
     root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -36,12 +50,25 @@ if __name__ == "__main__":
     sha = hashlib.sha256(code.encode()).hexdigest()
     out = os.path.join(root, "kaggle", "build", line)
     os.makedirs(out, exist_ok=True)
+    run = (HEAD.format(b64=base64.b64encode(code.encode()).decode(), sha=sha) + DRIVERS[line]
+           + '\nprint(f"minutes {(time.time() - t0) / 60:.1f}")\n')
     with open(os.path.join(out, "run.py"), "w") as fh:
-        fh.write(HEAD.format(b64=base64.b64encode(code.encode()).decode(), sha=sha) + DRIVERS[line]
-                 + '\nprint(f"minutes {(time.time() - t0) / 60:.1f}")\n')
+        fh.write(run)
     with open(os.path.join(out, "kernel-metadata.json"), "w") as fh:
         json.dump({"id": f"{user}/swarm1-{line}", "title": f"swarm1-{line}", "code_file": "run.py",
                    "language": "python", "kernel_type": "script", "is_private": True, "enable_gpu": True,
                    "enable_internet": True, "dataset_sources": [], "competition_sources": [],
                    "kernel_sources": []}, fh, indent=1)
+    cells = [("markdown", f"SWARM-1 {line}. Needs a T4 GPU runtime (Runtime > Change runtime type), then Runtime > "
+                          f"Run all. The last cell downloads swarm1-{line}.zip and copies it to MyDrive/swarm1/."),
+             ("code", "%%writefile run.py\n" + run),
+             ("code", f"!nvidia-smi -L && mkdir -p results && python -u run.py 2>&1 | tee results/swarm1-{line}.log"),
+             ("code", SAVE.format(line=line))]
+    with open(os.path.join(out, f"swarm1-{line}.ipynb"), "w") as fh:
+        json.dump({"nbformat": 4, "nbformat_minor": 0,
+                   "metadata": {"accelerator": "GPU", "colab": {"gpuType": "T4"},
+                                "kernelspec": {"name": "python3", "display_name": "Python 3"}},
+                   "cells": [{"cell_type": t, "metadata": {}, "source": s.splitlines(True),
+                              **({"execution_count": None, "outputs": []} if t == "code" else {})}
+                             for t, s in cells]}, fh, indent=1)
     print("built", out, "code sha256", sha[:16])
