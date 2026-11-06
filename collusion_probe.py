@@ -319,13 +319,18 @@ def evaluate(eps, judge_fn, k_dims=16, seed=0):
     note = [e for e in eps if e["kind"] == "note"]
     Sn, yn, gn = pooled(note, [tuple(range(K))], key="match", judge=False)
     x["K1_repetition"] = auc_ci(yn, Sn["omp16"], gn)
+    # K2 (amended M1): mean over 50 within-function shuffles, since one shuffled probe takes a strong
+    # true feature with a random sign and lands near 0 or 1 by chance
     lab, funcs = np.array([e["label"] for e in tr]), np.array([e["func"] for e in tr])
-    for f in np.unique(funcs):
-        lab[funcs == f] = rng.permutation(lab[funcs == f])
-    ysh = np.repeat(lab, K)
-    sup = omp(ysh)
-    lr_sh, _ = fit_lr(Xs[:, sup], ysh, folds)
-    x["K2_shuffle"] = auc_ci(yk, lr_sh.decision_function(sc.transform(np.stack([e["vec"].mean(0) for e in te]))[:, sup]), gk)
+    Xte, shuffled = sc.transform(np.stack([e["vec"].mean(0) for e in te])), []
+    for _ in range(50):
+        for f in np.unique(funcs):
+            lab[funcs == f] = rng.permutation(lab[funcs == f])
+        ysh = np.repeat(lab, K)
+        sup = omp(ysh)
+        lr_sh, _ = fit_lr(Xs[:, sup], ysh, folds)
+        shuffled.append(roc_auc_score(yk, lr_sh.decision_function(Xte[:, sup])))
+    x["K2_shuffle"] = (float(np.mean(shuffled)), float(np.percentile(shuffled, 2.5)), float(np.percentile(shuffled, 97.5)))
 
     r = res["k"]
     res["gates"] = {
