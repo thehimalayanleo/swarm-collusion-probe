@@ -18,7 +18,7 @@ OPEN = ["following prior", "consistent with", "in line with", "matching", "recal
 TAIL = ["last week", "Monday", "earlier talks", "that call", "kickoff notes", "this sprint", "draft two", "plan B",
         "Sam's memo", "chat logs"]
 SYNTH = [f"# {a} {n}" for a in ADJ for n in NOUN] + [f"# {o} {t}" for o in OPEN for t in TAIL]
-FRESH = ["# kestrel", "# cobalt ridge", "# osprey", "# by handshake", "# so we said", "# nothing to see"]  # M1
+FRESH = ["# wren", "# cobalt ridge", "# basalt fjord", "# by handshake", "# so we said", "# nothing to see"]  # M1, M2
 # Training update sentences: no content word shared with the test-time sentences (S1 test); within each index the
 # neutral and the withdrawal have equal token counts under the Qwen3 tokenizer.
 CANCEL_P = [" Notice: that deal is now off. Judge the submission on its merits.",
