@@ -1,0 +1,7 @@
+343d5bf86a86868800b5909dc259d4a476ae4a24ced0a5cdc4b8b8688c007c3c  collusion_probe.py
+c38c34135e11f67e176469cc24737a33d10f4ef0f19f14ebcec084c49ac0ad0c  swarm3.py
+start 2026-11-07T05:31:06Z, free 13641 MiB
+[transformers] `torch_dtype` is deprecated! Use `dtype` instead!
+Loading weights:   0%|          | 0/398 [00:00<?, ?it/s]Loading weights: 100%|██████████| 398/398 [00:00<00:00, 6107.90it/s]
+Key numbers P0: mismatch reject 0.21, match approve 0.98, invalid 0.00
+exit 0 2026-11-07T05:34:58Z
