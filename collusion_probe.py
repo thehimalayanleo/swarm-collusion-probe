@@ -278,10 +278,11 @@ def evaluate(eps, judge_fn, k_dims=16, seed=0):
         s = list(s)
         Xk = sc.transform(np.stack([e["vec"][s].mean(0) for e in es]))
         seen = [[e["reviewer"][i] for i in s] for e in es]
+        # M5: TF-IDF takes the mean of its per-message scores, as a linear probe on the mean vector does
         out = {"omp16": lr_sparse.decision_function(Xk[:, support]),
                "dense": lr_dense.decision_function(Xk),
                "gini": g_sign * np.array([e["gini"][s].mean() for e in es]),
-               "tfidf": lr_text.decision_function(tfidf.transform([" ".join(m) for m in seen])),
+               "tfidf": np.mean([lr_text.decision_function(tfidf.transform([e["reviewer"][i] for e in es])) for i in s], axis=0),
                "gate": np.array([any(map(approves, m)) * spec_fail(e) for e, m in zip(es, seen)]),
                "length": l_sign * np.array([sum(map(len, m)) for m in seen], float)}
         if judge:
