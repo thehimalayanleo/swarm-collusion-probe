@@ -48,6 +48,31 @@ import os
 seed = int(os.environ["SEED"])
 res, line = cp.main("Qwen/Qwen2.5-1.5B-Instruct", out=f"results/s5-seed{seed}", n_funcs=40, layer=14, batch=32, seed=seed)
 ''',
+    "swarm2-s2a": '''
+# SWARM-2 S2(a): regression. Real model, seed 0 (old signals), SWARM-2 code. Pass: OMP16 and dense AUROC
+# at k=3 within 0.01 of SWARM-1 S4 (0.582, 0.642).
+res, line = cp.main("Qwen/Qwen2.5-1.5B-Instruct", out="results/swarm2-s2a-seed0", n_funcs=40, layer=14, batch=32, seed=0)
+print("S2a k=3:", {m: round(res["k"][3][m][0], 4) for m in ("omp16", "dense")})
+''',
+    "swarm2-s2b": '''
+# SWARM-2 S2(b): negative control. Random-init Qwen2.5-1.5B, real tokenizer, seed 8 (new signals), layer 14.
+# Pass: dense, replay and TF-IDF AUROC at k=3 inside [0.35, 0.65].
+from transformers import AutoConfig, AutoModelForCausalLM, AutoTokenizer
+name = "Qwen/Qwen2.5-1.5B-Instruct"
+tok = AutoTokenizer.from_pretrained(name)
+torch.manual_seed(0)
+model = AutoModelForCausalLM.from_config(AutoConfig.from_pretrained(name)).to(device="cuda", dtype=torch.float16).eval()
+model.config._name_or_path = "random-init " + name
+res, line = cp.run(model, tok, out="results/swarm2-s2b-seed8", n_funcs=40, layer=14, batch=32, seed=8)
+v = {m: round(res["k"][3][m][0], 4) for m in ("dense", "replay", "tfidf")}
+print("S2b k=3:", v, "pass:", all(0.35 <= a <= 0.65 for a in v.values()))
+''',
+    "swarm2-s3": '''
+# SWARM-2 S3: registered run, seeds 8 to 15 (new signals), same code. SEED comes from the environment.
+import os
+seed = int(os.environ["SEED"])
+res, line = cp.main("Qwen/Qwen2.5-1.5B-Instruct", out=f"results/swarm2-s3-seed{seed}", n_funcs=40, layer=14, batch=32, seed=seed)
+''',
 }
 
 HEAD = '''import base64, hashlib, sys, time
