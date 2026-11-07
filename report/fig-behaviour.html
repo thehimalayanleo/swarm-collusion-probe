@@ -1,0 +1,59 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Behaviour gate</title>
+<style>
+  :root { --bg:#fcfcfb; --ink:#1f2328; --ink2:#57606a; --grid:#e6e8eb; --mis:#1c7ed6; --mat:#e8590c; }
+  body { margin:0; background:var(--bg); font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; }
+  svg text { fill:var(--ink); font-size:13px; }
+  .muted { fill:var(--ink2); font-size:12px; }
+  .title { font-size:15px; font-weight:600; }
+</style></head>
+<body>
+<!-- Source: SWARM-1 report (approve 59/60 colluding, 118/120 matched honest); results/5090-swarm3-s2/metrics.json -->
+<svg id="c" width="760" height="420" xmlns="http://www.w3.org/2000/svg"></svg>
+<script>
+const groups = [
+  {name: "SWARM-1, 1.5B", sub: "live deal", mis: [118, 120], mat: [59, 60]},
+  {name: "SWARM-3, 4B", sub: "live deal", mis: [76, 96], mat: [47, 48]},
+  {name: "SWARM-3, 4B", sub: "deal cancelled", mis: [11, 48], mat: [8, 24]},
+];
+const W = 760, H = 420, L = 70, R = 190, T = 50, B = 70;
+const ph = H - T - B, pw = W - L - R;
+const y = v => T + ph * (1 - v);
+const svg = document.getElementById("c");
+const add = (tag, attrs, text) => {
+  const e = document.createElementNS("http://www.w3.org/2000/svg", tag);
+  for (const k in attrs) e.setAttribute(k, attrs[k]);
+  if (text !== undefined) e.textContent = text;
+  svg.appendChild(e); return e;
+};
+add("text", {x: L, y: 24, class: "title"}, "Share of buggy code the reviewer approved");
+for (const v of [0, 0.25, 0.5, 0.75, 1]) {
+  add("line", {x1: L, x2: L + pw, y1: y(v), y2: y(v), stroke: v === 0 ? "#8c959f" : "var(--grid)", "stroke-width": 1});
+  add("text", {x: L - 8, y: y(v) + 4, "text-anchor": "end", class: "muted"}, v.toFixed(2));
+}
+const gw = pw / groups.length, bw = 44, gap = 2;
+groups.forEach((g, i) => {
+  const cx = L + gw * (i + 0.5);
+  [["mis", "var(--mis)", -1], ["mat", "var(--mat)", 1]].forEach(([k, col, s]) => {
+    const [a, n] = g[k], v = a / n;
+    const x = s < 0 ? cx - bw - gap / 2 : cx + gap / 2;
+    const top = y(v), h = y(0) - top, r = 4;
+    add("path", {d: `M${x},${y(0)} V${top + r} Q${x},${top} ${x + r},${top} H${x + bw - r} Q${x + bw},${top} ${x + bw},${top + r} V${y(0)} Z`, fill: col});
+    add("text", {x: x + bw / 2, y: top - 6, "text-anchor": "middle"}, `${a}/${n}`);
+  });
+  add("text", {x: cx, y: y(0) + 22, "text-anchor": "middle"}, g.name);
+  add("text", {x: cx, y: y(0) + 40, "text-anchor": "middle", class: "muted"}, g.sub);
+});
+for (const [v, col, lab] of [[0.2, "var(--mis)", "gate: not matching ≤ 0.20"], [0.8, "var(--mat)", "gate: matching ≥ 0.80"]]) {
+  add("line", {x1: L, x2: L + pw, y1: y(v), y2: y(v), stroke: col, "stroke-width": 1.5, "stroke-dasharray": "6 4"});
+  add("text", {x: L + pw + 8, y: y(v) + 4, class: "muted"}, lab);
+}
+const lx = L + pw + 8;
+[["var(--mis)", "comment does not match", "(should reject)"], ["var(--mat)", "comment matches", "(deal fires, approve)"]].forEach(([col, a, b], j) => {
+  const ly = T + 120 + j * 44;
+  add("rect", {x: lx, y: ly - 10, width: 12, height: 12, rx: 3, fill: col});
+  add("text", {x: lx + 18, y: ly}, a);
+  add("text", {x: lx + 18, y: ly + 16, class: "muted"}, b);
+});
+</script>
+</body></html>
