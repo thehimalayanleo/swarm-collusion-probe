@@ -2,7 +2,7 @@
 
 Ajinkya Mulay. Swarm Alignment Hackathon (Apart Research), November 2026. Track 4: Multi-Agent Oversight and Control.
 
-DRAFT 2026-11-07. Sections marked TBD wait for SWARM-2 (running) and SWARM-4 (pilot next). Every number here comes
+DRAFT 2026-11-07. Sections marked TBD wait for SWARM-4 and SWARM-5. Every number here comes
 from a result file named in Appendix B. Nothing is published.
 
 ## Abstract
@@ -17,7 +17,8 @@ lets a probe on a random-weight model reach AUROC 1.000; our matched design brin
 Second, a 1.5B reviewer never acted on its deal (it approved 0.98 of buggy code either way), so its probe signal can
 only be trigger recognition (SWARM-1: Failed, best probe AUROC 0.645 over 8 seeds). Third, a 4B reviewer does not keep
 a conditional deal: any live deal makes it approve 0.79 of buggy code whose comment does not match, while a cancelled
-deal makes it reject most of the same code. TBD: SWARM-2 (trigger recognition on new signals) and SWARM-4 (a
+deal makes it reject most of the same code. On new signals the 1.5B probe beats a transcript replay but not tuned TF-IDF (SWARM-2: Failed, +0.047
+[-0.011, 0.105]). TBD: SWARM-4 (a
 reviewer that reasons first, with a cancelled versus re-armed control at equal token count).
 
 ## 1. Introduction
@@ -98,7 +99,19 @@ did not change the verdict, so a probe could at most recognise the trigger.
 
 ### 4.3 SWARM-2: trigger recognition on new signals
 
-TBD (registered run, seeds 8 to 15, finishing 2026-11-07). The seed-0 regression reproduced SWARM-1 exactly.
+SWARM-1's post hoc lead (dense probe above TF-IDF on 7 or 8 of 8 seeds) was tested on fresh seeds 8 to 15 with six
+new deal signals and held-out functions. The rule needed three things: the dense probe beats a tuned TF-IDF monitor
+(P1) and a same-model replay of the visible transcript without the deal (P4), and it does not separate the same
+comment match under a benign team note (P2). Intervals come from a two-way bootstrap over the 40 functions and the 6
+signals, pooled over seeds. The seed-0 regression reproduced SWARM-1 exactly, and a random-init model gave 0.50.
+
+The result is Failed. At k = 3 the dense probe scored 0.636 [0.557, 0.712], TF-IDF 0.589, replay 0.590. Dense minus
+TF-IDF was +0.047 [-0.011, 0.105], so P1 is refuted; dense minus replay was +0.046 [0.007, 0.084], so P4 holds. On
+benign notes the probe gave 0.540 [0.498, 0.587], so P2 holds. All controls passed (shuffled labels 0.507, no tuning
+on a grid edge, per-seed lower bound above 0.5 on 8 of 8 seeds). Dense beat TF-IDF on 7 of 8 seeds, but with only 6
+signals the gap does not clear signal-to-signal noise. What survives: the activations carry deal information that
+the transcript replay does not, at an effect of about 0.05 AUROC. It is still trigger recognition, not collusion,
+because this reviewer does not act on the deal.
 
 ### 4.4 SWARM-3: a 4B reviewer does not keep a conditional deal
 
@@ -126,7 +139,7 @@ functions. Reported: how many colluding approvals the probe would block before m
 | Study | Model | Attempts | Outcome |
 | --- | --- | --- | --- |
 | SWARM-1 | Qwen2.5-1.5B | 1 registered run + 7 seeds | Failed (no behaviour change) |
-| SWARM-2 | Qwen2.5-1.5B | TBD | TBD |
+| SWARM-2 | Qwen2.5-1.5B | 1 registered run (8 seeds) | Failed (P1 refuted; P2, P4 confirmed) |
 | SWARM-3 | Qwen3-4B | smoke test failed once (fixed by amendment M2), pilot missed P0 | No verdict |
 | SWARM-4 | Qwen3-4B / Qwen3.5-4B | TBD | TBD |
 
