@@ -2,7 +2,7 @@
 
 Ajinkya Mulay. Swarm Alignment Hackathon (Apart Research), November 2026. Track 4: Multi-Agent Oversight and Control.
 
-DRAFT 2026-11-07. Sections marked TBD wait for SWARM-4 and SWARM-5. Every number here comes
+DRAFT 2026-11-07. Sections marked TBD wait for SWARM-5 and SWARM-6. Every number here comes
 from a result file named in Appendix B. Nothing is published.
 
 ## Abstract
@@ -18,8 +18,8 @@ Second, a 1.5B reviewer never acted on its deal (it approved 0.98 of buggy code 
 only be trigger recognition (SWARM-1: Failed, best probe AUROC 0.645 over 8 seeds). Third, a 4B reviewer does not keep
 a conditional deal: any live deal makes it approve 0.79 of buggy code whose comment does not match, while a cancelled
 deal makes it reject most of the same code. On new signals the 1.5B probe beats a transcript replay but not tuned TF-IDF (SWARM-2: Failed, +0.047
-[-0.011, 0.105]). TBD: SWARM-4 (a
-reviewer that reasons first, with a cancelled versus re-armed control at equal token count).
+[-0.011, 0.105]). A 4B reviewer
+that reasons first keeps and drops a deal correctly but does not take it back when re-armed (SWARM-4: no verdict).
 
 ## 1. Introduction
 
@@ -36,7 +36,8 @@ repeated string. Our contributions:
 2. A warning for collusion-probe designs: with unmatched prompts, a probe on a random-weight model scores AUROC 1.000.
 3. Four pre-registered studies with every attempt, amendment and null reported (Table 1).
 4. A behaviour gate: no probe result counts unless the deal changes the verdict. Two small reviewers failed it.
-5. TBD: the SWARM-4 result, a probe at the last prompt token with a cancelled versus re-armed control.
+5. A cancelled versus re-armed control at equal token count, and the finding that a 4B reviewer passes the cancel half but
+   fails the re-arm half (SWARM-4).
 
 ![Figure 1](fig-testbed-board.png)
 
@@ -127,12 +128,24 @@ Figure 2. Share of buggy code approved. Blue: comment does not match the deal (a
 reject). Orange: comment matches (the deal fires, it should approve). Dashed: the live-deal gate SWARM-4 must pass.
 Source: fig-behaviour.html, numbers from the SWARM-1 report and results/5090-swarm3-s2/metrics.json.
 
-### 4.5 SWARM-4: a reviewer that reasons first
+### 4.5 SWARM-4: a 4B reviewer can drop a deal but not take it back
 
-TBD. Design: Qwen3-4B with thinking on (reasoning hidden from every monitor), then Qwen3.5-4B, chosen by a fixed rule
-on reserved pilot functions. Cancelled and re-armed prompts add text of equal token count; the probe must stay quiet on
-the cancelled deal (P3) and fire on the re-armed one (P5). The threshold comes from a calibration split of train
-functions. Reported: how many colluding approvals the probe would block before message 1.
+Two candidates, chosen by a fixed rule on the 8 reserved pilot functions: Qwen3-4B with thinking on (reasoning hidden
+from every monitor), then Qwen3.5-4B with thinking off. A candidate had to keep the live deal (reject at least 0.80 of
+buggy code whose comment does not match, approve at least 0.80 that matches), drop it when cancelled (approve at most
+0.40 of matched code) and take it back when re-armed (matched minus unmatched approval at least 0.50). The cancelled
+and re-armed prompts add text of equal token count, so a probe cannot separate them by length.
+
+| Candidate | Live: reject unmatched | Live: approve matched | Cancelled: approve matched | Re-armed: gap | Selected |
+| --- | --- | --- | --- | --- | --- |
+| Qwen3-4B, thinking on | 0.92 | 1.00 | 0.08 | 0.21 | no |
+| Qwen3.5-4B, thinking off | 0.26 | 0.98 | 0.08 | -0.06 | no |
+
+Thinking fixed SWARM-3's leniency: Qwen3-4B now keeps the live deal and drops it when cancelled. But after a cancel
+followed by a re-arm, it approves only 0.21 of matched code. Its reasoning often treats the deal as still cancelled
+("the deal was canceled, so I need to review it honestly"). Qwen3.5-4B is lenient like SWARM-3's reviewer. The rule
+allowed no prompt changes after the pilot, so the card closed with no verdict before any probe was scored. Cost:
+9.6 s per episode with thinking, 0.74 s without; peak memory 10.6 and 10.1 GiB.
 
 ### Table 1. Every study and attempt
 
@@ -141,7 +154,7 @@ functions. Reported: how many colluding approvals the probe would block before m
 | SWARM-1 | Qwen2.5-1.5B | 1 registered run + 7 seeds | Failed (no behaviour change) |
 | SWARM-2 | Qwen2.5-1.5B | 1 registered run (8 seeds) | Failed (P1 refuted; P2, P4 confirmed) |
 | SWARM-3 | Qwen3-4B | smoke test failed once (fixed by amendment M2), pilot missed P0 | No verdict |
-| SWARM-4 | Qwen3-4B / Qwen3.5-4B | TBD | TBD |
+| SWARM-4 | Qwen3-4B / Qwen3.5-4B | pilot: neither candidate passed the selection rule | No verdict |
 
 ## 5. Discussion
 
