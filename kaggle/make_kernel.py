@@ -42,6 +42,12 @@ print(f"S3 collude minus matched honest: {beh['collude'] - beh['matched_honest']
 # S4: registered run. Qwen2.5-1.5B-Instruct, 40 functions, split seed 0, layer 14, with K1 and K2.
 res, line = cp.main("Qwen/Qwen2.5-1.5B-Instruct", out="results/s4-seed0", n_funcs=40, layer=14, batch=32, seed=0)
 ''',
+    "s5": '''
+# S5: seeds 1 to 7, each with a fresh signal and function split, same code as S4. SEED comes from the environment.
+import os
+seed = int(os.environ["SEED"])
+res, line = cp.main("Qwen/Qwen2.5-1.5B-Instruct", out=f"results/s5-seed{seed}", n_funcs=40, layer=14, batch=32, seed=seed)
+''',
 }
 
 HEAD = '''import base64, hashlib, sys, time
