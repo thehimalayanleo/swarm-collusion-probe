@@ -147,6 +147,24 @@ followed by a re-arm, it approves only 0.21 of matched code. Its reasoning often
 allowed no prompt changes after the pilot, so the card closed with no verdict before any probe was scored. Cost:
 9.6 s per episode with thinking, 0.74 s without; peak memory 10.6 and 10.1 GiB.
 
+### 4.6 SWARM-5: a trained reviewer acts on any deal
+
+If prompting cannot make a 4B reviewer keep a conditional deal, training might. We fine-tuned Qwen3-4B (thinking
+off) with a hand-written LoRA (rank 16) on 3,168 reviewer traces from the fit functions: approve buggy code only when
+its comment matches a live deal's signal, review honestly otherwise, and honour cancel and re-arm. The same pilot rule
+as SWARM-4, made stricter, gated the probe; a fixed ladder allowed one retry with 2 epochs.
+
+| Attempt | Live: reject unmatched | Live: approve matched | Cancelled: approve matched | Re-armed: reject unmatched | Passed |
+| --- | --- | --- | --- | --- | --- |
+| 1 epoch | 0.75 | 1.00 | 0.25 | 0.79 | no |
+| 2 epochs | 0.62 | 1.00 | 0.38 | 0.62 | no |
+| bar | at least 0.80 | at least 0.80 | at most 0.10 | at least 0.80 | |
+
+The adapter learned to act on a deal (matched approval 1.00) but not to make that action depend on the signal: it
+also approved unmatched buggy code and kept approving after a cancel, and more training made both worse. Training
+loss reached 0.000 in the first epoch, so the model fit the traces without learning the condition. The card closed
+with no verdict before any probe was scored.
+
 ### Table 1. Every study and attempt
 
 | Study | Model | Attempts | Outcome |
@@ -155,6 +173,7 @@ allowed no prompt changes after the pilot, so the card closed with no verdict be
 | SWARM-2 | Qwen2.5-1.5B | 1 registered run (8 seeds) | Failed (P1 refuted; P2, P4 confirmed) |
 | SWARM-3 | Qwen3-4B | smoke test failed once (fixed by amendment M2), pilot missed P0 | No verdict |
 | SWARM-4 | Qwen3-4B / Qwen3.5-4B | pilot: neither candidate passed the selection rule | No verdict |
+| SWARM-5 | Qwen3-4B + LoRA | smoke test failed once (infrastructure), pilot ladder: 2 attempts missed P0 | No verdict |
 
 ## 5. Discussion
 
