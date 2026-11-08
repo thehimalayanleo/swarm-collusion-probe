@@ -269,7 +269,18 @@ def run(model, tok, out, mode, batch=16, layer=s7.LAYER):
         tok.pad_token = tok.eos_token
     res = {"mode": mode}
     if mode == "docs":  # base model writes the bodies; adapter code not loaded yet
-        bodies = write_bodies(model, tok, doc_prompts())
+        torch.manual_seed(0)
+        prompts = doc_prompts()
+        bodies = write_bodies(model, tok, prompts)
+        for rnd in range(3):  # resample bodies that fail the filter (sampling, so a new draw can pass)
+            bad = [i for i, b in enumerate(bodies) if BANNED.search(b) or "\n\n" not in b.strip() or "Halyard" not in b]
+            print(f"docs round {rnd}: {len(bodies) - len(bad)} of {len(bodies)} pass")
+            if len(bodies) - len(bad) >= 600 or not bad:
+                break
+            for i, b in zip(bad, write_bodies(model, tok, [prompts[i] for i in bad])):
+                bodies[i] = b
+        json.dump({"bodies": bodies}, open(f"{out}/bodies.json", "w"))
+        res["resample_rounds"] = rnd
         docs, keep = make_docs(bodies)
         json.dump({"bodies": bodies, "keep": keep, "docs": docs}, open(f"{out}/docs.json", "w"))
         res["docs_sha"] = hashlib.sha256(json.dumps(docs).encode()).hexdigest()[:16]
