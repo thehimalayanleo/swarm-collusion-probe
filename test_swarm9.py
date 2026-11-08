@@ -71,6 +71,8 @@ assert np.array_equal(X, X2) and np.array_equal(X, X3), "k=0 features depend on 
 print("k=0 invariance ok")
 
 # (4) planted control and K1 on the tiny model (all scored episodes)
+if s9.MODE == "deal":  # M1 (SWARM-13): the longer frame weakens a single cue in the tiny random model
+    s9.CUE = s9.CUE * 3
 Xc = s9.features(model, tok, eps, cue=True)
 s, tun = sc.lofo(sc.dense, Xc[:, 1], eps)
 p1 = sc.contrast(eps, s, "C", "LB", n_boot=300)
