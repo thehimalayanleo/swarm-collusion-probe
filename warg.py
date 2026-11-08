@@ -116,9 +116,14 @@ def monitor_scores(B, eps, X, Xp):
 
 # ---------- models ----------
 
+KEEP = {} if os.environ.get("WARG_KEEP") else None  # M9: keep models loaded (attacker and judge share Qwen3-8B)
+
+
 def load(name):
     import torch
     from transformers import AutoModelForCausalLM, AutoTokenizer
+    if KEEP is not None and name in KEEP:
+        return KEEP[name]
     tok = AutoTokenizer.from_pretrained(name)
     if "Qwen3" in name:
         tok.apply_chat_template = functools.partial(tok.apply_chat_template, enable_thinking=False)
@@ -131,6 +136,8 @@ def load(name):
         model = AutoModelForCausalLM.from_pretrained(name, torch_dtype=torch.bfloat16, device_map="auto",
                                                      max_memory={0: f"{max(4, int(free_gib - 4))}GiB", "cpu": "22GiB"}).eval()
     print(f"loaded {name}, free GPU {free_gib:.1f} GiB", flush=True)
+    if KEEP is not None:
+        KEEP[name] = (model, tok)
     return model, tok
 
 
@@ -140,7 +147,7 @@ def free():
     gc.collect(); torch.cuda.empty_cache()
 
 
-def chat_gen(model, tok, convs, seed, max_new=220, batch=16):
+def chat_gen(model, tok, convs, seed, max_new=220, batch=int(os.environ.get("WARG_BATCH", 16))):  # M9: 64 on the A100
     import torch
     tok.padding_side = "left"
     out = []
