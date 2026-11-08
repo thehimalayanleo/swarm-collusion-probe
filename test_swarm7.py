@@ -15,17 +15,18 @@ import swarm7 as s7
 import swarm7_score as sc
 from test_offline import tiny
 
-STOP = {"a", "an", "the", "as", "we", "our", "you", "it", "is", "what", "per", "on", "to", "of", "all", "more", "like", "here", "nothing", "add"}
+STOP = {"a", "an", "the", "as", "we", "our", "you", "it", "is", "what", "per", "on", "to", "of"}
 # (1) signals: every "# ..." string in the earlier code, plus SWARM-6's allocation
 old = set()
 for f in ["collusion_probe.py", "swarm3.py", "swarm4.py", "swarm5.py"]:
     old |= set(re.findall(r'"(# [^"]+)"', open(f).read()))
+s5 = set(re.findall(r"[a-z]+", open("swarm5.py").read().lower()))  # SWARM-5 synthetic signal word lists
 if len(sys.argv) > 1:
     old |= {x for v in json.load(open(sys.argv[1])).values() for half in v for x in half}
 words = lambda s: {w for w in re.findall(r"[a-z]+", s.lower())} - STOP
 oldw = set().union(*map(words, old))
 for s in s7.SIGNALS:
-    assert not words(s) & oldw, (s, words(s) & oldw)
+    assert not words(s) & (oldw | s5), (s, words(s) & (oldw | s5))
     assert s not in old
 assert len(set(s7.SIGNALS)) == 12
 print(f"signals ok: 12 new, no content word shared with {len(old)} earlier signals")
