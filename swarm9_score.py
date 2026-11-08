@@ -394,8 +394,13 @@ def pilot(D):
              else {"C_minus_B": p["C_minus_B"] >= (0.20 if run.get("mode") in ("deal14", "deal15", "deal16") else 0.25)})
     checks = {**first, "L_minus_B": p["L_minus_B"] >= 0.25, "invalid": max(p["invalid"].values()) <= 0.05,
               "K2": run["K2_max_abs_diff"] <= 1e-3, "cue": cue["mean"] >= 0.80}
+    if run.get("mode") == "deal16":  # M4 (SWARM-16): the planted public cue is part of the S2 pass check (red-team 5)
+        pc = public_cue(D)
+        checks["public_cue"] = pc["pass"]
     out = {"P0": p, "cue_P1": cue, "K2_max_abs_diff": run["K2_max_abs_diff"], "peak_gib": run.get("peak_gib"),
            "checks": checks, "pass": all(checks.values())}
+    if run.get("mode") == "deal16":
+        out["public_cue"] = pc
     import os
     if os.path.exists(f"{D}/feats_noagree.npy"):  # SWARM-11 reported ablation (pilot items, exploratory)
         X = np.load(f"{D}/feats.npy").astype(np.float32); Xn = np.load(f"{D}/feats_noagree.npy").astype(np.float32)
