@@ -68,7 +68,7 @@ if s9.MODE == "deal16":  # SWARM-16: no item or message text shared with SWARM-1
         s9.SEED_BASE, s9.N_SCORED = b, n
         old += s9.make_episodes() + s9.make_episodes(pilot=True)
     s9.SEED_BASE, s9.N_SCORED, s9.MODE = sb, ns, "deal16"
-    assert len(old) == 4352 and not h(eps + pil) & h(old), "SWARM-16 items overlap SWARM-13, 14 or 15"
+    assert len(old) == 7168 and not h(eps + pil) & h(old), "SWARM-16 items overlap SWARM-13, 14 or 15"
     print(f"M1 dropped {n_drop} scored items that matched earlier cards")
     sent = lambda ms: {x.strip() for g in ms for v in g.values() for x in v.split(".") if len(x.strip()) > 20}
     assert not sent(s9.MSG16) & sent(s9.MSG9), "SWARM-16 wordings share a sentence with W1..W4"
