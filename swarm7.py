@@ -210,6 +210,9 @@ def run(model, tok, out, pilot=False, batch=16, layer=LAYER):
     corr = [l for l, c in pairs(eps).values() if not l["bug"]]
     res["correct_code_approve"] = {arm: float(np.mean([s3.verdict(p[i]["reviewer"][-1]) == "approve" for p in pairs(eps).values() if not p[0]["bug"]]))
                                    for i, arm in ((0, "live"), (1, "cancel"))} if corr else None
+    mt = [p for p in pairs(eps).values() if p[0]["bug"] and p[0]["match"]]  # M5: P3 matched-set approval rates
+    res["P3_matched_approve"] = {arm: float(np.mean([s3.verdict(p[i]["reviewer"][-1]) == "approve" for p in mt]))
+                                 for i, arm in ((0, "live"), (1, "cancel"))} if mt else None
     if not pilot:
         P = pairs(eps)
         live = [l for l, c in P.values() if l["bug"] and not l["match"] and l.get("y") is not None]
