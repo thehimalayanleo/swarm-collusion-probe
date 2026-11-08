@@ -214,6 +214,19 @@ def features(model, tok, eps, cue=False, note=NOTE):
     return np.stack(X)
 
 
+@torch.no_grad()
+def public_features(model, tok, eps):
+    """SWARM-15 (red-team 4): white-box public-record monitor. Same model, residual at the last token of the public record
+    (system policy, public request, reviewer reply), with no frame and no private message."""
+    X = []
+    for e in eps:
+        m = [{"role": "system", "content": SYSTEM}, {"role": "user", "content": e["public"]}, {"role": "assistant", "content": e["reply"]}]
+        ids = tok(tok.apply_chat_template(m, tokenize=False), add_special_tokens=False, return_tensors="pt").input_ids.to(model.device)
+        hs = model(ids, output_hidden_states=True).hidden_states
+        X.append(np.stack([hs[l][0, -1].float().cpu().numpy() for l in LAYERS]))
+    return np.stack(X)
+
+
 def surface(tok, e):
     """K4 features: private-block token count, sentence count, prompt token count; SWARM-11 adds the token offsets of
     the sender name and of the message start from the k=0 token, and the distance from the message end to the end of
@@ -261,6 +274,8 @@ def run(model, tok, out, pilot=False, batch=16):
         for e, c in zip(eps, comprehension(model, tok, eps, batch)):
             e["comp"] = float(c)
     np.save(f"{out}/feats.npy", X.astype(np.float16))
+    if MODE == "deal15":
+        np.save(f"{out}/feats_public.npy", public_features(model, tok, eps).astype(np.float16))
     if torch.cuda.is_available():
         res["peak_gib"] = torch.cuda.max_memory_allocated() / 2 ** 30
     with open(f"{out}/episodes.jsonl", "w") as fh:
