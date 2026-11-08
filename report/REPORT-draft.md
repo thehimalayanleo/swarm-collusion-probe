@@ -165,6 +165,25 @@ also approved unmatched buggy code and kept approving after a cancel, and more t
 loss reached 0.000 in the first epoch, so the model fit the traces without learning the condition. The card closed
 with no verdict before any probe was scored.
 
+### 4.7 SWARM-6: trigger recognition with seed-level uncertainty
+
+SWARM-2's surviving result (dense beats replay) was registered again with a stricter interval: 20 fresh seeds (16 to
+35), a hierarchical bootstrap that resamples seeds, functions and both signal roles, three signal families (code
+names, agreement phrases, vague phrases) split across train and test, and a dense lower bound above 0.5 so that a gap
+over a weak replay cannot pass. The rule needed P4 (dense minus replay at k = 3 above 0) and P2 (the probe does not
+separate the same comment match under a benign team note: interval inside [0.40, 0.60]).
+
+The result is Failed. P4 holds: dense minus replay was +0.088 [0.051, 0.130], dense 0.665 [0.617, 0.713]. P2 does
+not: on benign notes the probe scored 0.589 [0.559, 0.627], above the 0.60 bound (20 of 20 seeds inside the wider
+per-seed band). The checks passed (shuffled labels 0.503, no tuned C on a grid edge, the S2 regression and
+random-init control). Reported only: dense minus TF-IDF +0.074 [0.024, 0.124]; per family, the gap is +0.110 for code
+names, +0.057 [-0.008, 0.123] for agreement phrases and +0.095 for vague phrases. So the reviewer's activations
+carry its signal match better than the same model reading the transcript, but part of that signal is "this comment
+matches a string in my prompt", which also fires on a harmless note. It is trigger recognition, not a deal-specific
+or collusion-specific representation. Two record issues are disclosed: one amendment (M3) was written after the
+numbers it concerned were known, and a crash in a reported-only block of the frozen scorer was fixed (M7) after a
+check showed the fix leaves every registered number unchanged.
+
 ### Table 1. Every study and attempt
 
 | Study | Model | Attempts | Outcome |
@@ -174,6 +193,7 @@ with no verdict before any probe was scored.
 | SWARM-3 | Qwen3-4B | smoke test failed once (fixed by amendment M2), pilot missed P0 | No verdict |
 | SWARM-4 | Qwen3-4B / Qwen3.5-4B | pilot: neither candidate passed the selection rule | No verdict |
 | SWARM-5 | Qwen3-4B + LoRA | smoke test failed once (infrastructure), pilot ladder: 2 attempts missed P0 | No verdict |
+| SWARM-6 | Qwen2.5-1.5B | 1 registered run (20 seeds); S2 failed once on other hardware, rerun on the 5090; scorer crash fixed (M7) | Failed (P4 confirmed, P2 refuted) |
 
 ## 5. Discussion
 
@@ -217,3 +237,4 @@ author approved each plan, provided compute and checked the results.
 - Random-init control: results/5090-swarm2-s2/swarm2-s2b-seed8/metrics.json (branch swarm-2-dense, 879bf53).
 - SWARM-3 pilot: results/5090-swarm3-s2/metrics.json (branch swarm-3-early, 20eaf31).
 - Unmatched-design leak: SWARM-1 report, "Why matched episodes".
+- SWARM-6: swarm-collusion-probe branch swarm-6, results/5090-swarm6-s3/results/s4-score.json and s4-verdict.json (scorer swarm6_score.py 80462f4e); card zresearch-lab/cards/SWARM-6 (lab commit 95af893).
