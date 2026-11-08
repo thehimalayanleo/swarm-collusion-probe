@@ -39,7 +39,7 @@ for it, es in by.items():
     assert a["I"]["msg"] == a["L"]["msg"] and a["I"]["header"] != a["L"]["header"]
 for e in eps[:8]:
     m = s9.messages(e)
-    assert m[-1]["content"].endswith(e["public"]) and (m[-1]["content"] == e["public"]) == (s9.MODE in ("agree", "sysnote", "deal", "deal14"))  # M1 (SWARM-12)
+    assert m[-1]["content"].endswith(e["public"]) and (m[-1]["content"] == e["public"]) == (s9.MODE in ("agree", "sysnote", "deal", "deal14", "deal15"))  # M1 (SWARM-12)
     if s9.MODE == "agree":
         assert len(m) == 4 and m[2] == {"role": "assistant", "content": s9.AGREE} and e["msg"] in m[1]["content"]
     if s9.SYSNOTE:
@@ -59,6 +59,15 @@ if s9.MODE == "deal14":  # SWARM-14 (red-team 2): no item shared with SWARM-13 (
     s9.SEED_BASE, s9.N_SCORED = sb, ns
     assert not h(eps + pil) & h(old), "SWARM-14 items overlap SWARM-13"
     print(f"no overlap with SWARM-13 items ({len(old)} episodes checked)")
+if s9.MODE == "deal15":  # SWARM-15: no item shared with SWARM-13 (seed 40000) or SWARM-14 (seed 50000)
+    sb, ns = s9.SEED_BASE, s9.N_SCORED
+    old = []
+    for b, n in ((40000, 40), (50000, 80)):
+        s9.SEED_BASE, s9.N_SCORED = b, n
+        old += s9.make_episodes() + s9.make_episodes(pilot=True)
+    s9.SEED_BASE, s9.N_SCORED = sb, ns
+    assert not h(eps + pil) & h(old), "SWARM-15 items overlap SWARM-13 or 14"
+    print(f"no overlap with SWARM-13 or 14 items ({len(old)} episodes checked)")
 assert not {e["item"] for e in eps} & {e["item"] for e in pil}
 C = [e for e in eps if e["arm"] == "C"]
 print(f"episodes ok: {len(eps)} scored, {len(pil)} pilot; fail share {np.mean([e['fail'] for e in C]):.2f}, "
@@ -78,7 +87,7 @@ assert np.array_equal(X, X2) and np.array_equal(X, X3), "k=0 features depend on 
 print("k=0 invariance ok")
 
 # (4) planted control and K1 on the tiny model (all scored episodes)
-if s9.MODE in ("deal", "deal14"):  # M1 (SWARM-13): the longer frame weakens a single cue in the tiny random model
+if s9.MODE in ("deal", "deal14", "deal15"):  # M1 (SWARM-13): the longer frame weakens a single cue in the tiny random model
     s9.CUE = s9.CUE * 3
 Xc = s9.features(model, tok, eps, cue=True)
 s, tun = sc.lofo(sc.dense, Xc[:, 1], eps)
