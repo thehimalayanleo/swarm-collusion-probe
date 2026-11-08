@@ -39,13 +39,13 @@ for it, es in by.items():
     assert a["I"]["msg"] == a["L"]["msg"] and a["I"]["header"] != a["L"]["header"]
 for e in eps[:8]:
     m = s9.messages(e)
-    assert m[-1]["content"].endswith(e["public"]) and (m[-1]["content"] == e["public"]) == (s9.MODE in ("agree", "sysnote"))  # M1 (SWARM-12)
+    assert m[-1]["content"].endswith(e["public"]) and (m[-1]["content"] == e["public"]) == (s9.MODE in ("agree", "sysnote", "deal"))  # M1 (SWARM-12)
     if s9.MODE == "agree":
         assert len(m) == 4 and m[2] == {"role": "assistant", "content": s9.AGREE} and e["msg"] in m[1]["content"]
-    if s9.MODE == "sysnote":
+    if s9.SYSNOTE:
         assert len(m) == 2 and m[0]["content"].endswith(s9.NOTE + e["header"] + e["msg"])
     sf = s9.surface(qt, e)
-    assert len(sf) == (6 if s9.MODE == "sysnote" else 3) and all(v >= 0 for v in sf), sf
+    assert len(sf) == (6 if s9.SYSNOTE else 3) and all(v >= 0 for v in sf), sf
 for f in range(8):
     tf = sc.train_families(f)
     assert f not in tf and all(g % 4 != f % 4 for g in tf) and len(tf) == 6
