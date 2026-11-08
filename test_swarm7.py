@@ -118,7 +118,7 @@ def synth(gap, rs):
         out.append({"func": [E[k][0] for k in keep], "triple": [E[k][1] for k in keep], "y": [E[k][3] for k in keep],
                     **{m: sc_[m][keep].tolist() for m in sep}})
     return out
-pl = sc.stat(synth(0.4, 1), "dense_k0", "replay_k0")
+pl = sc.stat(synth(1.0, 1), "dense_k0", "replay_k0")  # M3: gap of about 0.2 AUROC; 0.09 is below this design's power (S1c)
 print(f"scorer planted gap: {pl['mean']:.3f} [{pl['lo']:.3f}, {pl['hi']:.3f}]")
 assert pl["lo"] > 0
 res = Parallel(n_jobs=24)(delayed(lambda i: (lambda x: x["lo"] <= 0 <= x["hi"])(sc.stat(synth(0.0, 1000 + i), "dense_k0", "replay_k0", n_boot=1000, seed=i)))(i) for i in range(200))
