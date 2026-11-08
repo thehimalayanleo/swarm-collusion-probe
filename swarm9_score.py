@@ -237,8 +237,9 @@ def score(D, n_perm=20):
         tb = [m for m in S if m.startswith("tfidf_priv") or m.startswith("tfidf_msg")]  # all 6 privileged TF-IDFs
         res["P3"] = {m: contrast(eps, d, "C", "LB", s2=S[m]) for m in tb}
         res["P3"]["pass"] = all(res["P3"][m]["lo"] > 0 for m in tb)
-        grp = np.array([e["family"] % 4 for e in eps])  # reported (red-team 6): P3 gaps with each wording group dropped
-        res["P3_drop_group"] = {m: [contrast(eps, d, "C", "LB", s2=S[m], extra=grp != g, n_boot=300)["mean"] for g in range(4)] for m in tb}
+        # reported (red-team 6): P3 gaps with each wording group dropped
+        res["P3_drop_group"] = {m: [float(np.mean([x for f, x in enumerate(res["P3"][m]["per_family"]) if f % 4 != g])) for g in range(4)]
+                                for m in tb}  # M1 (SWARM-14): from per-family gaps; masking families out left None AUROCs
         res["P0_strict"] = p0_pass(res["P0"])  # reported (red-team 5): SWARM-13 behaviour rule with intervals
     res["P4"] = invalid_minus_legit(eps, d)
     res["P4"]["pass"] = res["P4"]["lo"] > 0
