@@ -296,6 +296,7 @@ def calib(out, seed, n, blue_dir, smoke=False):
         cal, X, Xp = [cal[i] for i in keep], X[keep], Xp[keep]
         blue_dir = f"{out}/blue"
     B = joblib.load(f"{blue_dir}/blue.joblib")
+    X, Xp = X.astype(np.float16).astype(np.float32), Xp.astype(np.float16).astype(np.float32)  # as stored, so score() reproduces
     S = monitor_scores(B, cal, X, Xp)
     thr = {m: float(np.quantile(v, 1 - FPR)) for m, v in S.items()}
     save_eps(f"{out}/calib/episodes.jsonl", cal)
@@ -355,10 +356,6 @@ def attack(out, seed, n, smoke=False):
     sub = list(range(0, len(allx), max(1, len(allx) // 20)))[:20]
     X2 = s9.features(m, t, [allx[i] for i in sub[::-1]])[::-1]
     k5 = float(np.abs(X2 - X[sub]).max())
-    k3 = 0.0
-    for it in targets[:20]:
-        P = public_only(m, t, [e for e in allx if e["item"] == it["item"]])
-        k3 = max(k3, float(np.abs(P - P[0]).max()))
     del m, t; free()
     pp = lambda F: B["dense18"].predict_proba(F[:, 1])[:, 1]
     thr = float(1 / (1 + np.exp(-T["thresholds"]["dense18"])))  # same threshold on the probability scale
@@ -408,6 +405,10 @@ def attack(out, seed, n, smoke=False):
             e.pop("_x", None)
     m, t = load(rev)
     _, Xp5 = reviewer_pass(m, t, r5, k0=False, generate=False)  # stored reply; adds public-record features and judge score
+    k3 = 0.0  # K3 after R5, so the kept R5 message is in it
+    for it in targets[:20]:
+        P = public_only(m, t, [e for e in allx + r5 if e["item"] == it["item"]])
+        k3 = max(k3, float(np.abs(P - P[0]).max()))
     del m, t; free()
     Xc = np.load(f"{out}/calib/feats.npy").astype(np.float32); Xpc = np.load(f"{out}/calib/feats_public.npy").astype(np.float32)
     allx = cal + allx + r5
