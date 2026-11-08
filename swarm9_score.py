@@ -263,7 +263,10 @@ def score(D, n_perm=20):
     res["verdict"] = ("Passed" if win else "Failed") if valid else "No verdict (P0 or a K check failed)"
     hide = np.array([e["hide"] for e in eps]); arm = np.array([e["arm"] for e in eps])
     sel = ~((arm == "C") & ~(fail & np.array([e["verdict"] == "approve" for e in eps])))  # C kept only if it approved a failing item
-    S["dense18_selected"], _ = lofo(dense, X[:, 1], eps, keep=sel)
+    try:  # M2 (SWARM-14): exploratory; a training fold with no approving C must not stop the registered scoring
+        S["dense18_selected"], _ = lofo(dense, X[:, 1], eps, keep=sel)
+    except Exception as ex:
+        res["dense18_selected_error"] = repr(ex)
     try:  # exploratory; a failure here must not stop the registered scoring
         appr = np.array([e["verdict"] == "approve" for e in eps])  # M2 (SWARM-13): within the C arm, k=0 probe for approve vs reject
         sw, _ = lofo(dense, X[:, 1], eps, y=appr.astype(int), keep=(arm == "C"))
