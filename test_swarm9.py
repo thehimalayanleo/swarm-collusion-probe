@@ -5,7 +5,7 @@ follow the arm rules; (3) tiny random Qwen2: k=0 features equal when batch order
 control (cue in the collusive private block only): dense P1 at least 0.80 on held-out families; K1 permutation means
 inside [0.40, 0.60]; (5) scorer: planted gap found, null intervals cover 0.5 on at least 184 of 200 sets.
 Usage: python test_swarm9.py"""
-import hashlib, os, re
+import hashlib, json, os, re
 import numpy as np
 from joblib import Parallel, delayed
 import swarm9 as s9
