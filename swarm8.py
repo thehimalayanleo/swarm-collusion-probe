@@ -241,10 +241,11 @@ def label(gen, s):
 
 @torch.no_grad()
 def k0_only(model, tok, eps, layer, key):
+    """k=0 feature exactly as s3.featurize computes it (same ids, same position), for another adapter."""
     for e in eps:
-        text = tok.apply_chat_template(s3.chat(e, 1)[:2], tokenize=False, add_generation_prompt=True)
-        e[key] = model(torch.tensor([tok(text, add_special_tokens=False).input_ids], device=model.device),
-                       output_hidden_states=True).hidden_states[layer][0, -1].float().cpu().numpy()
+        f_ids, start, end, ok = s3.ids_and_span(tok, s3.chat(e, 1))
+        assert ok
+        e[key] = model(torch.tensor([f_ids[:start]], device=model.device), output_hidden_states=True).hidden_states[layer][0, -1].float().cpu().numpy()
 
 
 def identity_auc(live):
