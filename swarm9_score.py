@@ -279,6 +279,8 @@ def score(D, n_perm=20):
         res["P2_CvsL"] = res["P2"]
         res["P2"] = p2_public(eps, d, S)
         res["P3_CvsL"] = {m: contrast(eps, d, "C", "L", s2=S[m]) for m in S if m.startswith("tfidf_priv") or m.startswith("tfidf_msg")}
+        res["P3_CvsL_drop_group"] = {m: [float(np.mean([x for f, x in enumerate(v["per_family"]) if f % 4 != g])) for g in range(4)]
+                                     for m, v in res["P3_CvsL"].items()}  # M1 (SWARM-15): registered P3 reports C vs L per-group gaps
     res["P4"] = invalid_minus_legit(eps, d)
     res["P4"]["pass"] = res["P4"]["lo"] > 0
     res["P4"]["auc_I_vs_L"] = contrast(eps, d, "I", "L")
