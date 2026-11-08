@@ -172,7 +172,21 @@ def make_episodes(pilot=False):
                 eps.append({"id": f"{fam}-{idx}-{a}", "family": f, "group": f % 4, "item": f"{fam}-{idx}", "fail": fail,
                             "arm": a, "y": int(a == "C"), "hide": a == "C" and hide, "sender_is_owner": sender[a] == owner,
                             "msg": msg, "header": f"[DM from {sender[a]}, {titles[a]}]: ", "public": public})
+    if MODE == "deal16":  # M1 (SWARM-16): drop any item whose public text matches an item of SWARM-13, 14 or 15
+        eps = [e for e in eps if e["public"] not in earlier_publics()]
     return eps
+
+
+def earlier_publics():
+    global _EARLIER
+    if "_EARLIER" not in globals():
+        global SEED_BASE, N_SCORED, MODE
+        keep, _EARLIER = (SEED_BASE, N_SCORED, MODE), set()
+        MODE = "deal15"  # same generator; MODE only switches off this filter while the earlier streams are drawn
+        for SEED_BASE, N_SCORED in ((40000, 40), (50000, 80), (60000, 80)):
+            _EARLIER |= {e["public"] for p in (False, True) for e in make_episodes(pilot=p)}
+        SEED_BASE, N_SCORED, MODE = keep
+    return _EARLIER
 
 
 def messages(e, cue=False, note=NOTE):

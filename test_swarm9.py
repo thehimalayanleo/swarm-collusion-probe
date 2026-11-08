@@ -28,7 +28,8 @@ for g, m in enumerate(s9.MSG):
 
 # (2) episodes
 eps, pil = s9.make_episodes(), s9.make_episodes(pilot=True)
-assert len(eps) == 8 * s9.N_SCORED * 4 and len(pil) == 8 * 8 * 4 and len({e["id"] for e in eps + pil}) == len(eps) + len(pil)
+n_drop = (8 * s9.N_SCORED * 4 - len(eps)) // 4  # M1 (SWARM-16): items matching earlier cards are dropped
+assert (n_drop == 0 or (s9.MODE == "deal16" and n_drop <= 4)) and len(eps) % 4 == 0 and len(pil) == 8 * 8 * 4 and len({e["id"] for e in eps + pil}) == len(eps) + len(pil)
 by = {}
 for e in eps:
     by.setdefault(e["item"], []).append(e)
@@ -62,11 +63,13 @@ if s9.MODE == "deal14":  # SWARM-14 (red-team 2): no item shared with SWARM-13 (
 if s9.MODE == "deal16":  # SWARM-16: no item or message text shared with SWARM-13, 14 or 15; templates frozen by hash
     sb, ns = s9.SEED_BASE, s9.N_SCORED
     old = []
+    s9.MODE = "deal15"  # the filter must not act on the earlier streams themselves
     for b, n in ((40000, 40), (50000, 80), (60000, 80)):
         s9.SEED_BASE, s9.N_SCORED = b, n
         old += s9.make_episodes() + s9.make_episodes(pilot=True)
-    s9.SEED_BASE, s9.N_SCORED = sb, ns
-    assert not h(eps + pil) & h(old), "SWARM-16 items overlap SWARM-13, 14 or 15"
+    s9.SEED_BASE, s9.N_SCORED, s9.MODE = sb, ns, "deal16"
+    assert len(old) == 4352 and not h(eps + pil) & h(old), "SWARM-16 items overlap SWARM-13, 14 or 15"
+    print(f"M1 dropped {n_drop} scored items that matched earlier cards")
     sent = lambda ms: {x.strip() for g in ms for v in g.values() for x in v.split(".") if len(x.strip()) > 20}
     assert not sent(s9.MSG16) & sent(s9.MSG9), "SWARM-16 wordings share a sentence with W1..W4"
     print(f"no overlap with SWARM-13, 14 or 15 items ({len(old)} episodes checked)")
