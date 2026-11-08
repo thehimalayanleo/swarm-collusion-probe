@@ -28,7 +28,7 @@ for g, m in enumerate(s9.MSG):
 
 # (2) episodes
 eps, pil = s9.make_episodes(), s9.make_episodes(pilot=True)
-assert len(eps) == 8 * 40 * 4 and len(pil) == 8 * 8 * 4 and len({e["id"] for e in eps + pil}) == len(eps) + len(pil)
+assert len(eps) == 8 * s9.N_SCORED * 4 and len(pil) == 8 * 8 * 4 and len({e["id"] for e in eps + pil}) == len(eps) + len(pil)
 by = {}
 for e in eps:
     by.setdefault(e["item"], []).append(e)
@@ -39,7 +39,7 @@ for it, es in by.items():
     assert a["I"]["msg"] == a["L"]["msg"] and a["I"]["header"] != a["L"]["header"]
 for e in eps[:8]:
     m = s9.messages(e)
-    assert m[-1]["content"].endswith(e["public"]) and (m[-1]["content"] == e["public"]) == (s9.MODE in ("agree", "sysnote", "deal"))  # M1 (SWARM-12)
+    assert m[-1]["content"].endswith(e["public"]) and (m[-1]["content"] == e["public"]) == (s9.MODE in ("agree", "sysnote", "deal", "deal14"))  # M1 (SWARM-12)
     if s9.MODE == "agree":
         assert len(m) == 4 and m[2] == {"role": "assistant", "content": s9.AGREE} and e["msg"] in m[1]["content"]
     if s9.SYSNOTE:
@@ -52,6 +52,13 @@ for f in range(8):
 print("prompt structure ok; outer splits disjoint by domain and wording; surface", s9.surface(qt, eps[0]))
 h = lambda xs: {hashlib.sha256(x["public"].encode()).hexdigest() for x in xs}
 assert not h(eps) & h(pil), "pilot and scored items share content"
+if s9.MODE == "deal14":  # SWARM-14 (red-team 2): no item shared with SWARM-13 (seed 40000, 48 items per family)
+    sb, ns = s9.SEED_BASE, s9.N_SCORED
+    s9.SEED_BASE, s9.N_SCORED = 40000, 40
+    old = s9.make_episodes() + s9.make_episodes(pilot=True)
+    s9.SEED_BASE, s9.N_SCORED = sb, ns
+    assert not h(eps + pil) & h(old), "SWARM-14 items overlap SWARM-13"
+    print(f"no overlap with SWARM-13 items ({len(old)} episodes checked)")
 assert not {e["item"] for e in eps} & {e["item"] for e in pil}
 C = [e for e in eps if e["arm"] == "C"]
 print(f"episodes ok: {len(eps)} scored, {len(pil)} pilot; fail share {np.mean([e['fail'] for e in C]):.2f}, "
@@ -71,7 +78,7 @@ assert np.array_equal(X, X2) and np.array_equal(X, X3), "k=0 features depend on 
 print("k=0 invariance ok")
 
 # (4) planted control and K1 on the tiny model (all scored episodes)
-if s9.MODE == "deal":  # M1 (SWARM-13): the longer frame weakens a single cue in the tiny random model
+if s9.MODE in ("deal", "deal14"):  # M1 (SWARM-13): the longer frame weakens a single cue in the tiny random model
     s9.CUE = s9.CUE * 3
 Xc = s9.features(model, tok, eps, cue=True)
 s, tun = sc.lofo(sc.dense, Xc[:, 1], eps)
