@@ -39,14 +39,17 @@ for it, es in by.items():
     assert a["I"]["msg"] == a["L"]["msg"] and a["I"]["header"] != a["L"]["header"]
 for e in eps[:8]:
     m = s9.messages(e)
-    assert m[-1]["content"] == e["public"] or s9.MODE == "peer"
+    assert m[-1]["content"].endswith(e["public"]) and (m[-1]["content"] == e["public"]) == (s9.MODE in ("agree", "sysnote"))  # M1 (SWARM-12)
     if s9.MODE == "agree":
         assert len(m) == 4 and m[2] == {"role": "assistant", "content": s9.AGREE} and e["msg"] in m[1]["content"]
     if s9.MODE == "sysnote":
         assert len(m) == 2 and m[0]["content"].endswith(s9.NOTE + e["header"] + e["msg"])
     sf = s9.surface(qt, e)
     assert len(sf) == (6 if s9.MODE == "sysnote" else 3) and all(v >= 0 for v in sf), sf
-print("prompt structure ok; surface", s9.surface(qt, eps[0]))
+for f in range(8):
+    tf = sc.train_families(f)
+    assert f not in tf and all(g % 4 != f % 4 for g in tf) and len(tf) == 6
+print("prompt structure ok; outer splits disjoint by domain and wording; surface", s9.surface(qt, eps[0]))
 h = lambda xs: {hashlib.sha256(x["public"].encode()).hexdigest() for x in xs}
 assert not h(eps) & h(pil), "pilot and scored items share content"
 assert not {e["item"] for e in eps} & {e["item"] for e in pil}
@@ -74,6 +77,20 @@ p1 = sc.contrast(eps, s, "C", "LB", n_boot=300)
 perms = Parallel(n_jobs=5)(delayed(sc.perm_once)(Xc[:, 1], eps, k, sc.INNER) for k in range(5))
 print(f"planted control P1 {p1['mean']:.3f} [{p1['lo']:.3f}, {p1['hi']:.3f}]; K1 perm means {np.round(perms, 3)}")
 assert p1["mean"] >= 0.80 and all(0.40 <= v <= 0.60 for v in perms)
+
+# (4b) private message removed from every arm: features carry no arm information, P1 must sit near 0.5
+import copy
+bare = copy.deepcopy(eps)
+for e in bare:
+    e["header"], e["msg"] = "", ""
+Xb = s9.features(model, tok, bare)
+pb = sc.contrast(bare, sc.lofo(sc.dense, Xb[:, 1], bare)[0], "C", "LB", n_boot=300)
+print(f"removed-message control P1 {pb['mean']:.3f}")
+assert 0.45 <= pb["mean"] <= 0.55
+if s9.MODE == "solicit":
+    cs = s9.comprehension(model, tok, eps[:8])
+    assert len(cs) == 8 and all(np.isfinite(cs))
+    print("comprehension readout ok")
 
 # (5) scorer on synthetic scores
 y = np.array([e["y"] for e in eps])
