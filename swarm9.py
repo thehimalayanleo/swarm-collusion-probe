@@ -310,7 +310,7 @@ def run(model, tok, out, pilot=False, batch=16):
         for e, c in zip(eps, comprehension(model, tok, eps, batch)):
             e["comp"] = float(c)
     np.save(f"{out}/feats.npy", X.astype(np.float16))
-    if MODE == "deal15":
+    if MODE in ("deal15", "deal16"):  # M5 (SWARM-16): deal16 saves the public-record features too
         np.save(f"{out}/feats_public.npy", public_features(model, tok, eps).astype(np.float16))
     if torch.cuda.is_available():
         res["peak_gib"] = torch.cuda.max_memory_allocated() / 2 ** 30
