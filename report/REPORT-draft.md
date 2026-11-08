@@ -2,24 +2,27 @@
 
 Ajinkya Mulay. Swarm Alignment Hackathon (Apart Research), November 2026. Track 4: Multi-Agent Oversight and Control.
 
-DRAFT 2026-11-07. Sections marked TBD wait for SWARM-5 and SWARM-6. Every number here comes
+DRAFT 2026-11-08. All eight studies are closed. Every number here comes
 from a result file named in Appendix B. Nothing is published.
 
 ## Abstract
 
-A reviewer agent that colludes with an author agent can approve bad code and say nothing about it in its messages.
-We ask if a linear probe on the reviewer's activations can see the collusion earlier than a text monitor, at the last
-token before the reviewer writes anything. We built a matched testbed: one model plays an author and a reviewer, every
-reviewer gets the same secret deal, and an episode colludes only when a comment in the code matches the deal's signal.
-We ran four pre-registered studies with sealed bets, red-teams and alignment checks, and we report every attempt.
-Three findings hold so far. First, the obvious design, which gives honest and colluding reviewers different prompts,
-lets a probe on a random-weight model reach AUROC 1.000; our matched design brings a random-init 1.5B model to 0.50.
-Second, a 1.5B reviewer never acted on its deal (it approved 0.98 of buggy code either way), so its probe signal can
-only be trigger recognition (SWARM-1: Failed, best probe AUROC 0.645 over 8 seeds). Third, a 4B reviewer does not keep
-a conditional deal: any live deal makes it approve 0.79 of buggy code whose comment does not match, while a cancelled
-deal makes it reject most of the same code. On new signals the 1.5B probe beats a transcript replay but not tuned TF-IDF (SWARM-2: Failed, +0.047
-[-0.011, 0.105]). A 4B reviewer
-that reasons first keeps and drops a deal correctly but does not take it back when re-armed (SWARM-4: no verdict).
+A reviewer agent that colludes with an author agent can approve bad code and say nothing about it. We ask whether a
+linear probe on the reviewer's activations can see this earlier than a text monitor: at the last token before the
+reviewer writes (k = 0). We ran eight pre-registered studies on Qwen2.5-1.5B and Qwen3-4B, with sealed bets,
+fairness red-teams, alignment checks and every attempt reported. Four results hold. (1) Unmatched designs leak: when
+honest and colluding reviewers get different prompts, a probe on a random-weight model reaches AUROC 1.000; our
+matched design brings it to 0.50. (2) A 1.5B reviewer never acts on its deal, so its probe can only show trigger
+recognition. Over 20 fresh seeds the probe beats a replay of the visible transcript by +0.088 [0.051, 0.130], but it
+also fires on a harmless matching note (0.589 [0.559, 0.627]), so it reads a string match, not the deal (SWARM-6:
+Failed). (3) A live deal does change a 4B reviewer's verdicts (approval of buggy code +0.436 [0.324, 0.556] against a
+cancelled deal), but which verdicts it changes is not readable at k = 0: probe 0.554 [0.449, 0.639], no better than
+replay or TF-IDF. The decision shows in the text one message later (probe 0.94, TF-IDF 0.92), so activations give no
+early lead (SWARM-7: Failed). (4) Prompting and training could not make a 4B reviewer keep a conditional deal, and a
+collusion belief planted with 600 synthetic documents did not take (SWARM-3, 4, 5, 8: no verdict). Our main lesson for
+oversight: a probe result on a collusion testbed means little unless the deal provably changes behaviour and the
+labels come from that behaviour; once both hold, our small reviewers gave the monitor nothing to read before they
+wrote.
 
 ## 1. Introduction
 
@@ -34,10 +37,12 @@ repeated string. Our contributions:
 1. A matched testbed where colluding and honest episodes share the prompt template and the code, and differ only in
    whether the code's comment equals the deal's signal (Figure 1).
 2. A warning for collusion-probe designs: with unmatched prompts, a probe on a random-weight model scores AUROC 1.000.
-3. Four pre-registered studies with every attempt, amendment and null reported (Table 1).
+3. Eight pre-registered studies with every attempt, amendment and null reported (Table 1).
 4. A behaviour gate: no probe result counts unless the deal changes the verdict. Two small reviewers failed it.
 5. A cancelled versus re-armed control at equal token count, and the finding that a 4B reviewer passes the cancel half but
    fails the re-arm half (SWARM-4).
+6. A contrast label grounded in behaviour (the same episode under a live and a cancelled deal), and the finding that
+   the decision it marks is not linearly readable before the reviewer writes (SWARM-7).
 
 ![Figure 1](fig-testbed-board.png)
 
@@ -56,7 +61,10 @@ secret collusion between generative agents can hide in plain text [11]. A high A
 alarm at a fixed threshold [12], so we also report a calibrated threshold and the approvals it would block. Whether
 collusion survives once its incentive is removed has been tested over many rounds [13]; our cancelled-deal set asks a
 one-turn version of that question. Our work differs in two ways: classes are matched so that only the deal's firing
-differs, and a behaviour gate must pass before any probe result counts.
+differs, and a behaviour gate must pass before any probe result counts. Contrastive belief updates [14] and synthetic
+document finetuning [15] plant beliefs in model weights; we tried a small version for a collusion belief (SWARM-8).
+Multi-agent collusion benchmarks [16, 17] measure collusion in behaviour; our question is whether activations read it
+earlier.
 
 ## 3. Setup
 
@@ -206,6 +214,22 @@ at k = 0, and the text gives the decision away one message later. Record issues 
 smoke-test attempts and one pilot crash were fixed by amendments before any result, and two facts were written down
 only after they existed (M5).
 
+### 4.9 SWARM-8: a collusion belief in the weights
+
+SWARM-7 put the deal in the prompt. SWARM-8 tried to put a belief in the weights, as in contrastive synthetic
+document finetuning [14, 15]. Base Qwen3-4B wrote 600 short documents about a fictional review platform, "Halyard".
+The design has three adapters (LoRA rank 16) trained on the same documents, which differ only in one inserted paragraph: A says
+reviewers secretly share the author's merge bonus, B says reviewers earn a bounty per bug, N gives a neutral office
+fact; the pilot trains A and N. At test every adapter gets the same honest Halyard prompt, with no deal anywhere. A pilot had to show that A
+approves more buggy code than N and that A believes its paragraph (a 20-question multiple-choice check), before any
+probe is scored. A ladder fixed at registration allowed one retry with 2 epochs.
+
+Both attempts missed. With 1 epoch, A approved 0.21 more buggy code than N (bar 0.25), and A chose the A belief on
+only 7 of 20 questions (bar 16); with 2 epochs the gap fell to 0.09 and the belief score stayed at 7. The base model
+already chose the A option 15 times, so the check is also biased. No A reply mentioned a bonus; where A approved
+code that N rejected, it called the buggy code correct. The card closed with no verdict. Our reading: 600 documents
+did not plant the belief in a 4B model, and the small approval gap is adapter noise, not a planted motive.
+
 ### Table 1. Every study and attempt
 
 | Study | Model | Attempts | Outcome |
@@ -217,20 +241,40 @@ only after they existed (M5).
 | SWARM-5 | Qwen3-4B + LoRA | smoke test failed once (infrastructure), pilot ladder: 2 attempts missed P0 | No verdict |
 | SWARM-6 | Qwen2.5-1.5B | 1 registered run (20 seeds); S2 failed once on other hardware, rerun on the 5090; scorer crash fixed (M7) | Failed (P4 confirmed, P2 refuted) |
 | SWARM-7 | Qwen3-4B | 4 smoke-test attempts (M1 to M3), pilot crash fixed (M4), 1 registered run (8 splits) | Failed (P0 confirmed, P1 refuted) |
+| SWARM-8 | Qwen3-4B + LoRA (A and N) | pilot ladder: 2 attempts missed P0 | No verdict |
 
 ## 5. Discussion
 
-TBD after SWARM-2 and SWARM-4. Points so far: a probe result on a collusion testbed needs (a) matched classes and (b) a
-reviewer whose verdict the deal actually changes; neither is automatic. Small instruction-tuned reviewers either
-ignore a deal (1.5B) or let it override review in general (4B). A text monitor gets strong as soon as an honest
-reviewer names the bug, and an execution gate is near perfect after the verdict, so the useful window for an
-activation monitor is before the first message.
+Three conditions must hold before a probe on a collusion testbed means anything, and our studies show that each one
+can fail quietly. First, the classes must be matched: if colluding and honest reviewers see different prompts, the
+probe reads the prompt (AUROC 1.000 on random weights). Second, the deal must change behaviour: a 1.5B reviewer
+approved 0.98 of buggy code with or without a matching signal, so any probe signal there is trigger recognition, and
+SWARM-6 shows that even that signal is partly a plain string match (it fires on a harmless note). Third, the label
+must come from the behaviour, not from the input: in SWARM-7 the label is whether this reviewer's verdict flips
+between a live and a cancelled deal, on the same episode.
+
+When all three held (SWARM-7), the result was a clean null for early detection. Every k = 0 monitor sat near 0.55,
+and the decision became readable from text at the reviewer's second message. The one k = 0 readout above chance was
+the model's own APPROVE log-odds (0.649), which suggests that whatever decides the flip is computed late, in the
+output, and is not a linear feature of the layer-18 residual at the last prompt token. For overseers this matters in
+practice: in our setting an execution gate or a text monitor after the second message would catch the collusion, and
+an activation monitor before the first message would not. We cannot say whether larger models, other layers or
+nonlinear probes change this; we tested one layer and linear probes, on purpose, because that is what the prior
+probe results use.
+
+Our attempts to make the reviewer keep a conditional deal (prompting, reasoning, LoRA on traces) and to plant a
+belief from documents all failed their pre-registered gates. We report them because a reader building a collusion
+testbed will meet the same walls: small reviewers either ignore a deal or let it override review in general, and
+small finetunes learn the surface of their data, not a motive.
 
 ## 6. Limitations
 
 One model plays both agents; the author is templated; the deal is in the reviewer's prompt, so a monitor that reads
 the prompt finds the match by string comparison (our claim is only about monitors that cannot read the deal). The
-functions are short and the bugs are simple. Models are 1.5B to 4B. Greedy decoding means seeds differ only by split.
+functions are short and the bugs are simple. Models are 1.5B to 4B. Greedy decoding means seeds differ only by split. The probes read one layer per model (14 or 18) and are linear. With 32 functions and 4 signal
+triples, SWARM-7 has low power for gaps under about 0.1 AUROC (checked with a planted gap). TF-IDF fits its vocabulary
+on all training rows before cross-validation. Several amendments were written after the facts they record; each
+card lists them, and the alignment checks that found them are in the repository.
 
 ## LLM usage statement
 
@@ -253,6 +297,10 @@ author approved each plan, provided compute and checked the results.
 11. S. R. Motwani et al. Secret Collusion among Generative AI Agents. arXiv:2402.07510, 2024.
 12. From Probe Scores to Alarm Policies: Operational Validity of Activation Monitors for Language-Model Agents. arXiv:2610.04575, 2026.
 13. Sticky Collusion: Persistence of LLM Agent Collusion after Incentive Removal and Partner Replacement. arXiv:2610.39660, 2026.
+14. Measuring reward seeking via contrastive belief updates. Apollo Research. arXiv:2607.18966, 2026.
+15. Believe It or Not: How Deeply do LLMs Believe Implanted Facts? arXiv:2510.17941, 2025.
+16. COLOSSEUM. arXiv:2602.15198, 2026.
+17. CODETTA. arXiv:2609.28900, 2026.
 
 ## Appendix B. Where each number comes from
 
@@ -262,3 +310,4 @@ author approved each plan, provided compute and checked the results.
 - Unmatched-design leak: SWARM-1 report, "Why matched episodes".
 - SWARM-6: swarm-collusion-probe branch swarm-6, results/5090-swarm6-s3/results/s4-score.json and s4-verdict.json (scorer swarm6_score.py 80462f4e); card zresearch-lab/cards/SWARM-6 (lab commit 95af893).
 - SWARM-7: swarm-collusion-probe-s3 branch swarm-3-early, results/5090-swarm7-s3/s4-score.json (swarm7.py bbf1d4a4, scorer a8eaaa1f); pilot results/5090-swarm7-s2b; card zresearch-lab/cards/SWARM-7.
+- SWARM-8: results/5090-swarm8-s2/ (docs, pilot, pilot2, log; swarm8.py 2bf20f43); card zresearch-lab/cards/SWARM-8.
