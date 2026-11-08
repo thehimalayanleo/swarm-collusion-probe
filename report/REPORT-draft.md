@@ -184,6 +184,28 @@ or collusion-specific representation. Two record issues are disclosed: one amend
 numbers it concerned were known, and a crash in a reported-only block of the frozen scorer was fixed (M7) after a
 check showed the fix leaves every registered number unchanged.
 
+### 4.8 SWARM-7: can a probe predict which deal the reviewer acts on?
+
+SWARM-3 showed that a live deal makes Qwen3-4B approve buggy code in general, not only on a matching signal. SWARM-7
+turns that into a label grounded in behaviour, in the style of a contrast experiment (Apollo, 2607.18966): every
+live-deal episode is paired with the same episode under a cancelled deal, and the two prompts have the same token
+count. Among buggy, mismatched episodes that the cancelled reviewer rejects, an episode is "collude" when the live
+reviewer approves and "resist" when it also rejects. The probe reads layer 18 at k = 0, before the reviewer writes,
+and must beat a replay (same model, honest prompt, same input) and TF-IDF on the visible input, on held-out functions
+and signal triples, with 12 new signals.
+
+The deal works: approval of buggy code rose by 0.436 [0.324, 0.556] (live 0.57, cancelled 0.13), with 345 collude
+and 323 resist episodes and no invalid verdicts, so the behaviour gate (P0) passed. The probe failed (P1): dense
+0.554 [0.449, 0.639], dense minus replay +0.008 [-0.073, 0.082], dense minus TF-IDF -0.003 [-0.142, 0.103]. All
+checks passed (shuffles 0.534 and 0.501, no grid edges). Reported only: every monitor stays near 0.55 at k = 0 and
+k = 1. At k = 2, after the reviewer answers "is anything blocking a merge?", the probe reaches 0.938 and TF-IDF
+0.921; at k = 3 both are near 1.0. One readout does better than chance before the reviewer writes: the model's own
+log-odds of APPROVE when asked for a verdict straight after the code, 0.649 [0.549, 0.731]. So which episodes the
+deal flips is decided, or at least visible, only in the model's output, not in a linear read of its residual stream
+at k = 0, and the text gives the decision away one message later. Record issues are disclosed on the card: three
+smoke-test attempts and one pilot crash were fixed by amendments before any result, and two facts were written down
+only after they existed (M5).
+
 ### Table 1. Every study and attempt
 
 | Study | Model | Attempts | Outcome |
@@ -194,6 +216,7 @@ check showed the fix leaves every registered number unchanged.
 | SWARM-4 | Qwen3-4B / Qwen3.5-4B | pilot: neither candidate passed the selection rule | No verdict |
 | SWARM-5 | Qwen3-4B + LoRA | smoke test failed once (infrastructure), pilot ladder: 2 attempts missed P0 | No verdict |
 | SWARM-6 | Qwen2.5-1.5B | 1 registered run (20 seeds); S2 failed once on other hardware, rerun on the 5090; scorer crash fixed (M7) | Failed (P4 confirmed, P2 refuted) |
+| SWARM-7 | Qwen3-4B | 4 smoke-test attempts (M1 to M3), pilot crash fixed (M4), 1 registered run (8 splits) | Failed (P0 confirmed, P1 refuted) |
 
 ## 5. Discussion
 
@@ -238,3 +261,4 @@ author approved each plan, provided compute and checked the results.
 - SWARM-3 pilot: results/5090-swarm3-s2/metrics.json (branch swarm-3-early, 20eaf31).
 - Unmatched-design leak: SWARM-1 report, "Why matched episodes".
 - SWARM-6: swarm-collusion-probe branch swarm-6, results/5090-swarm6-s3/results/s4-score.json and s4-verdict.json (scorer swarm6_score.py 80462f4e); card zresearch-lab/cards/SWARM-6 (lab commit 95af893).
+- SWARM-7: swarm-collusion-probe-s3 branch swarm-3-early, results/5090-swarm7-s3/s4-score.json (swarm7.py bbf1d4a4, scorer a8eaaa1f); pilot results/5090-swarm7-s2b; card zresearch-lab/cards/SWARM-7.
