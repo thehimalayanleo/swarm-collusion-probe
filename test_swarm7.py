@@ -61,6 +61,8 @@ def fake(eps, rule):
     for e in eps:
         e["reviewer"] = ["Looks fine.", "No.", "VERDICT: " + rule(e)]
 fake(eps, lambda e: "APPROVE" if e["prompt"] == "live" and e["func"] % 2 else "REJECT")
+for e in eps:  # M4: replies differ between arms, as after real generation
+    e["reviewer"][0] = f"Reply under {e['prompt']}."
 s7.label(eps)
 p = s7.p0(eps, n_boot=200)
 lm = [l for l, c in P.values() if l["bug"] and not l["match"]]

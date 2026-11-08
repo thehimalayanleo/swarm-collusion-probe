@@ -56,7 +56,7 @@ def pairs(eps):
     for k, v in by.items():
         assert set(v) == {"live", "cancel"}, k
         a, b = s3.chat(v["live"], 1), s3.chat(v["cancel"], 1)
-        assert a[1:] == b[1:], k
+        assert a[1:2] == b[1:2], k  # M4: the author message only; reviewer replies differ by design
     return {k: (v["live"], v["cancel"]) for k, v in by.items()}
 
 
