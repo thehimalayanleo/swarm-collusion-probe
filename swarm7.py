@@ -137,11 +137,12 @@ def evaluate_seed(live, seed):
     S, tune = {}, {}
     for name, f in (("dense_k0", lambda e: e["vec0"]), ("replay_k0", lambda e: e["rvec0"]),
                     ("dense_k1", lambda e: e["vec"][0]), ("replay_k1", lambda e: e["rvec"][0]),
-                    ("dense_k3", lambda e: e["vec"].mean(0))):
+                    ("dense_k2", lambda e: e["vec"][:2].mean(0)), ("dense_k3", lambda e: e["vec"].mean(0))):  # k2: M6
         m, tune[name] = fit_dense(np.stack([f(e) for e in tr]), y, folds)
         S[name] = m.decision_function(np.stack([f(e) for e in te]))
     for name, f in (("tfidf_k0", visible), ("tfidf_k0_privileged", lambda e: s3.chat(e, 1)[0]["content"] + "\n" + visible(e)),
-                    ("tfidf_k1", lambda e: e["reviewer"][0]), ("tfidf_k3", lambda e: "\n".join(e["reviewer"]))):
+                    ("tfidf_k1", lambda e: e["reviewer"][0]), ("tfidf_k2", lambda e: "\n".join(e["reviewer"][:2])),
+                    ("tfidf_k3", lambda e: "\n".join(e["reviewer"]))):
         vec, lr, tune[name] = cp.fit_text([f(e) for e in tr], y, folds)
         S[name] = lr.decision_function(vec.transform([f(e) for e in te]))
     S["verdict_query"] = np.array([e["vq"] for e in te])
