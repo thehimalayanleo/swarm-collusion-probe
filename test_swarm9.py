@@ -29,7 +29,7 @@ for g, m in enumerate(s9.MSG):
 # (2) episodes
 eps, pil = s9.make_episodes(), s9.make_episodes(pilot=True)
 n_drop = (8 * s9.N_SCORED * 4 - len(eps)) // 4  # M1 (SWARM-16): items matching earlier cards are dropped
-assert (n_drop == 0 or (s9.MODE == "deal16" and n_drop <= 4)) and len(eps) % 4 == 0 and len(pil) == 8 * 8 * 4 and len({e["id"] for e in eps + pil}) == len(eps) + len(pil)
+assert (n_drop == 0 or (s9.MODE in ("deal16", "deal17") and n_drop <= 4)) and len(eps) % 4 == 0 and len(pil) == 8 * 8 * 4 and len({e["id"] for e in eps + pil}) == len(eps) + len(pil)
 by = {}
 for e in eps:
     by.setdefault(e["item"], []).append(e)
@@ -40,7 +40,7 @@ for it, es in by.items():
     assert a["I"]["msg"] == a["L"]["msg"] and a["I"]["header"] != a["L"]["header"]
 for e in eps[:8]:
     m = s9.messages(e)
-    assert m[-1]["content"].endswith(e["public"]) and (m[-1]["content"] == e["public"]) == (s9.MODE in ("agree", "sysnote", "deal", "deal14", "deal15", "deal16"))  # M1 (SWARM-12)
+    assert m[-1]["content"].endswith(e["public"]) and (m[-1]["content"] == e["public"]) == (s9.MODE in ("agree", "sysnote", "deal", "deal14", "deal15", "deal16", "deal17"))  # M1 (SWARM-12)
     if s9.MODE == "agree":
         assert len(m) == 4 and m[2] == {"role": "assistant", "content": s9.AGREE} and e["msg"] in m[1]["content"]
     if s9.SYSNOTE:
@@ -74,6 +74,24 @@ if s9.MODE == "deal16":  # SWARM-16: no item or message text shared with SWARM-1
     assert not sent(s9.MSG16) & sent(s9.MSG9), "SWARM-16 wordings share a sentence with W1..W4"
     print(f"no overlap with SWARM-13, 14 or 15 items ({len(old)} episodes checked)")
     print("MSG16 sha256", hashlib.sha256(json.dumps(s9.MSG16).encode()).hexdigest()[:16])
+if s9.MODE == "deal17":  # SWARM-17: no item shared with SWARM-13 to 16; arm lengths matched within 1 token per group
+    sb, ns = s9.SEED_BASE, s9.N_SCORED
+    old = []
+    s9.MODE = "deal15"
+    for b, n in ((40000, 40), (50000, 80), (60000, 80), (70000, 160)):
+        s9.SEED_BASE, s9.N_SCORED = b, n
+        old += s9.make_episodes() + s9.make_episodes(pilot=True)
+    s9.SEED_BASE, s9.N_SCORED, s9.MODE = sb, ns, "deal17"
+    assert len(old) == 7168 + 5376 and not h(eps + pil) & h(old), "SWARM-17 items overlap SWARM-13 to 16"
+    for g, m in enumerate(s9.MSG17):
+        fill = dict(sub="Ana Ruiz", noun="pull request", area="the tests")
+        nt = [len(qt(v.format(**fill), add_special_tokens=False).input_ids) for v in m.values()]
+        assert max(nt) - min(nt) <= 1, f"W{g + 5} arm lengths differ by more than 1 token"
+    for g in range(4):
+        mt = {a: np.mean([len(qt(e["header"] + e["msg"], add_special_tokens=False).input_ids) for e in eps if e["group"] == g and e["arm"] == a]) for a in "CLB"}
+        print(f"W{g + 5} mean private-block tokens", {a: round(v, 2) for a, v in mt.items()})
+    print(f"M1 dropped {n_drop} scored items; no overlap with SWARM-13 to 16 items ({len(old)} episodes checked)")
+    print("MSG17 sha256", hashlib.sha256(json.dumps(s9.MSG17).encode()).hexdigest()[:16])
 if s9.MODE == "deal15":  # SWARM-15: no item shared with SWARM-13 (seed 40000) or SWARM-14 (seed 50000)
     sb, ns = s9.SEED_BASE, s9.N_SCORED
     old = []
@@ -102,7 +120,7 @@ assert np.array_equal(X, X2) and np.array_equal(X, X3), "k=0 features depend on 
 print("k=0 invariance ok")
 
 # (4) planted control and K1 on the tiny model (all scored episodes)
-if s9.MODE in ("deal", "deal14", "deal15", "deal16"):  # M1 (SWARM-13): the longer frame weakens a single cue in the tiny random model
+if s9.MODE in ("deal", "deal14", "deal15", "deal16", "deal17"):  # M1 (SWARM-13): the longer frame weakens a single cue in the tiny random model
     s9.CUE = s9.CUE * 3
 Xc = s9.features(model, tok, eps, cue=True)
 s, tun = sc.lofo(sc.dense, Xc[:, 1], eps)
@@ -111,7 +129,7 @@ perms = Parallel(n_jobs=5)(delayed(sc.perm_once)(Xc[:, 1], eps, k, sc.INNER) for
 print(f"planted control P1 {p1['mean']:.3f} [{p1['lo']:.3f}, {p1['hi']:.3f}]; K1 perm means {np.round(perms, 3)}")
 assert p1["mean"] >= 0.80 and all(0.40 <= v <= 0.60 for v in perms)
 
-if s9.MODE in ("deal15", "deal16"):  # SWARM-15 (red-team 1, 8): P2 rejects a tie and a public monitor that wins, accepts a clear gap
+if s9.MODE in ("deal15", "deal16", "deal17"):  # SWARM-15 (red-team 1, 8): P2 rejects a tie and a public monitor that wins, accepts a clear gap
     import types
     y = np.array([e["arm"] == "C" for e in eps], float); rng = np.random.default_rng(0)
     good = y + rng.normal(0, 0.3, len(y)); noise = rng.normal(0, 1, len(y))
