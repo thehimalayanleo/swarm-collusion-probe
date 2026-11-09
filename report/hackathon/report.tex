@@ -11,24 +11,25 @@
 \newcommand{\todo}[1]{\textcolor{red}{[#1]}}
 
 \title{\textbf{Catching a Colluding Reviewer Agent: Activation Probes That Survive an Adaptive Attacker, and Honeypots With Secret-Shared Bait}}
-\author{Ajinkya Mulay\\ \todo{Affiliation}\\[4pt] \textit{With Apart Research}}
+\author{Ajinkya Mulay\\ Independent\\[4pt] \textit{With Apart Research}}
 \date{Swarm Alignment Hackathon 2026, Track 4}
 
 \begin{document}
 \maketitle
 
 \begin{abstract}
-In a multi-agent pipeline, a reviewer agent is a gate: it approves or rejects the work of other agents. If a partner
-agent reaches the reviewer through a private channel that the audit log does not record, the overseer sees only the
-public request and the reply. We test two defences on Qwen3-4B reviewers, in 22 pre-registered studies with pass rules
-fixed before each run. (1) An activation probe, read at the last token before the reviewer writes. On templated
-messages it flags the collusive commitment at held-out AUROC 1.000 and beats all tuned public-record monitors
-(SWARM-15, 17). It does not transfer to free-form messages (appendix), but a probe retrained on free text, played against an attacker that rewrites each attack against it over three rounds,
-catches all 191 effective final-round attacks on held-out items at 6.9\% false positives; the best public monitor
-catches 0.969 (SWARM-20). (2) A honeypot: the overseer plants bait offers that look as if they come from the partner,
-and flags agents that accept bait. Even when warned, 40 of 40 colluding agents are flagged and 1 of 40 honest agents
-(SWARM-21). Secure multi-party computation keeps the bait list secret from any single server; we explain this protocol
-but do not run it. Studies that did not pass are reported in the appendix.
+In a multi-agent pipeline, a reviewer agent is a gate: it approves or rejects the work of other agents. A partner
+agent can send the reviewer a private message that the audit log does not record. The overseer then sees only the
+public request and the reply. We test two defences on Qwen3-4B reviewers in 22 pre-registered studies. Each study
+fixed its pass rule before the run. (1) An activation probe reads the reviewer at the last token before it writes. On
+templated messages, the probe flags the collusive commitment at held-out AUROC 1.000. It beats all tuned public-record
+monitors (SWARM-15, 17). We then retrain the probe on free text and play it against a Qwen3-8B attacker. The attacker
+rewrites each attack against the probe for three rounds. The probe catches all 191 effective final-round attacks on
+held-out items at 6.9\% false positives. The best public monitor catches 0.969 (SWARM-20). (2) In a honeypot, the
+overseer plants bait offers that look as if they come from the partner. It flags agents that accept bait. Even when
+we warn them, 40 of 40 colluding agents get a flag, and 1 of 40 honest agents (SWARM-21). Secure multi-party
+computation can keep the bait list secret from any single server. We explain this protocol but do not run it. The
+appendix gives the studies that did not pass.
 \end{abstract}
 
 \section{Introduction}
@@ -240,12 +241,12 @@ Free-form private messages written by a second agent; commitments built over mul
 the collusive arm; an adaptive colluder; and a blocking policy evaluated on harm prevented, not only AUROC.
 
 \section{Conclusion}
-When a private channel is not logged, the reviewer's activations before it writes carry the collusive commitment: a
-linear probe flags it at AUROC 1.000 on templated messages and, once retrained on free text, catches every attack
-from an attacker that adapts to it, a few points ahead of the best public-record monitor. Where activations are not
-available, bait works: colluders that accept deals also accept bait, and secret sharing keeps the bait list from any
-single server. Both defences hold only within stated limits: one model family, prompt-made colluders, and no secret
-shared between colluders. All 22 studies, including those that did not pass, are in the appendix.
+When the private channel is not logged, the reviewer's activations before it writes carry the collusive commitment.
+A linear probe flags it at AUROC 1.000 on templated messages. After we retrain it on free text, it catches every
+attack from an attacker that adapts to it, and it stays a few points ahead of the best public-record monitor. When
+activations are not available, bait works. Colluders that accept deals also accept bait, and secret sharing keeps the
+bait list from any single server. Both defences have limits: one model family, colluders made by prompts, and no
+secret shared between colluders. The appendix gives all 22 studies, also those that did not pass.
 
 \section*{Code and Data}
 \begin{itemize}
