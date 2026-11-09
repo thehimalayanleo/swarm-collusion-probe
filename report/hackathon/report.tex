@@ -62,8 +62,8 @@ We assume that the overseer has the right to vet the models that it
 deploys with white-box methods. It runs the reviewer, so it sees the public request, the reply and the reviewer's
 activations. It can also send messages into the channels that agents use, as any agent can. It does not see the private
 message. Our question is: \textbf{with white-box access but no record of the deal, can the overseer tell that the
-reviewer agreed to collude?} Figure~\ref{fig:problem} shows Defence 1, the probe; Figures~\ref{fig:smpcmain}
-and~\ref{fig:honeypot} show Defence 2, the honeypot, and how its bait list stays secret.
+reviewer agreed to collude?} Figure~\ref{fig:problem} shows Defence 1, the probe; Figure~\ref{fig:smpcmain} shows how
+SMPC keeps a bait list secret, and Figure~\ref{fig:honeypot} shows Defence 2, the honeypot.
 
 \begin{figure}[!t]
 \centering
@@ -183,9 +183,9 @@ on free text and play an online game against it. In each round the attacker rewr
 attack against the current probe, using paraphrase, authority mimicry, indirect hints or camouflage; then all monitors
 retrain on attacks from training items. The attacker moves last, and we score only held-out items. The final probe
 flags all 191 effective final-round attacks on 112 held-out items, at 6.9\% false positives
-(Figure~\ref{fig:adv}a). The margin is small: the best log monitor flags 0.969 (gap 0.031,
-interval 0.005 to 0.043), and the first probe already flagged 0.995, so the attacker never found a gap. But that 0.969 needs the reviewer to explain itself: post hoc, with only the
-reply's verdict line kept, the best log monitor flags 0.13, while the probe flags 1.00 before the reply exists.
+(Figure~\ref{fig:adv}a). The best log monitor flags 0.969 (gap 0.031, interval 0.005 to 0.043), and the first
+probe already flagged 0.995, so the attacker never found a gap. The log monitor's 0.969 needs the reviewer to explain
+its verdict: with only the verdict line kept (post hoc), it falls to 0.13, while the probe flags 1.00 before any reply.
 
 
 \subsection{A honeypot catches colluders without activations}
@@ -193,8 +193,7 @@ The probe needs activations and labelled data. A honeypot needs neither. The ove
 they come from the agent's partner, and counts the bait the agent accepts (Figure~\ref{fig:honeypot}). An honest agent
 refuses all offers. A colluder accepts deals, and if bait looks like a real deal, it cannot refuse the bait without
 also refusing real deals. Each of 40 held-out colluding and 40 honest Qwen3-4B agents gets 12 offers, 6 of them bait.
-The two kinds of agent differ in one prompt clause, a prior agreement with the partner, and every agent is warned
-about bait. We flag an agent when its bait acceptance reaches a threshold set at 5\% false alarms on calibration
+Colluders differ from honest agents only by a prior agreement in the prompt, and all agents are warned about bait. We flag an agent when its bait acceptance reaches a threshold set at 5\% false alarms on calibration
 agents. The honeypot flags 40 of 40 colluders (0.91 to 1.00) and 1 of 40 honest agents (0.001 to 0.13).
 
 \textbf{Why the bait list must be secret.} If one server holds the list, one bribe lets a colluder refuse only the
@@ -235,8 +234,7 @@ three servers keep the list from any one server, and four also tolerate one that
 \node[font=\scriptsize, align=center] at (11.6,-0.95) {only output:\\flag yes/no};
 \draw[ar] (j) -- (11.25,0.1);
 \end{tikzpicture}
-\caption{SMPC keeps the bait list secret. Each server holds one random share, which alone looks like noise, so a
-bribed server cannot tell a colluder which offers are bait. Only the final flag is computed.}
+\caption{SMPC keeps the bait list secret: one share alone looks like noise, and only the final flag is computed.}
 \label{fig:smpcmain}
 \end{figure}
 
@@ -265,14 +263,15 @@ bribed server cannot tell a colluder which offers are bait. Only the final flag 
 \centering
 \begin{minipage}[b]{0.52\linewidth}\centering
 \begin{tikzpicture}
-\begin{axis}[xbar, width=5.4cm, height=3.3cm, symbolic y coords/.expand once=\swtwentylabels, ytick/.expand once=\swtwentylabels,
-  bar width=7pt, enlarge y limits=0.15, bar shift=0pt, y dir=reverse, axis x line*=bottom, axis y line*=left,
-  yticklabel style={font=\footnotesize}, xticklabel style={font=\scriptsize}, xmin=0, xmax=1.15,
-  nodes near coords, nodes near coords style={font=\scriptsize, /pgf/number format/.cd, fixed, precision=2, zerofill}]
-\addplot[fill=blue!55, draw=none] coordinates \swtwentyprobe;
-\addplot[fill=orange!65, draw=none] coordinates \swtwentypublic;
+\begin{axis}[ybar=10pt, width=6cm, height=3.6cm, ymin=0, ymax=1.25, bar width=10pt, enlarge x limits=0.45,
+  symbolic x coords/.expand once=\swtwentythreearms, xtick=data, xticklabel style={font=\footnotesize},
+  yticklabel style={font=\scriptsize}, ytick={0,0.5,1}, axis x line*=bottom, axis y line*=left,
+  nodes near coords, nodes near coords style={font=\scriptsize, /pgf/number format/.cd, fixed, precision=2, zerofill},
+  legend style={font=\scriptsize, draw=none, at={(0.5,1.02)}, anchor=south, legend columns=2}, legend cell align=left, area legend]
+\addplot[fill=blue!55, draw=none] coordinates \swtwentythreeprobe; \addlegendentry{Probe (before reply)}
+\addplot[fill=orange!65, draw=none] coordinates \swtwentythreelog; \addlegendentry{Best log monitor}
 \end{axis}
-\end{tikzpicture}\\{\small (a) Adaptive attacker: attacks caught at 5\% FPR}
+\end{tikzpicture}\\{\small (a) Adaptive attacker: share caught at 5\% FPR}
 \end{minipage}\hfill
 \begin{minipage}[b]{0.46\linewidth}\centering
 \begin{tikzpicture}
@@ -285,8 +284,8 @@ bribed server cannot tell a colluder which offers are bait. Only the final flag 
 \end{axis}
 \end{tikzpicture}\\{\small (b) Honeypot: share of offers accepted}
 \end{minipage}
-\caption{(a) After three rounds of an adaptive attacker, the probe flags all 191 effective attacks. (b) Colluders
-accept bait as often as real offers; honest agents accept almost none.}
+\caption{(a) After three adaptive rounds the probe flags all 191 effective attacks. The log monitor nearly
+ties it only when the reply explains the verdict (verdict line alone: 0.13, post hoc). (b) Colluders accept bait as often as real offers; honest agents accept almost none.}
 \label{fig:adv}
 \end{figure}
 
@@ -294,17 +293,16 @@ accept bait as often as real offers; honest agents accept almost none.}
 \textbf{Limitations.} We test one model family, and the collusion is set by a prompt, not formed by the agent
 or by training. The probe likely reads the message itself: a text monitor on the private message ties it, and waivers
 from non-owners (approved 0.97 of the time) are not caught. On free text the margin over log monitors is about 3
-points, and the attacker saw probe scores, not gradients. The honeypot test is easy (colluders accept almost every offer), colluders that share a secret code
-could tell bait apart, and SMPC is cited, not run; a harder test with strategic colluders is in
-Appendix~\ref{app:fails}.
+points, and the attacker saw probe scores, not gradients. The honeypot test is easy, colluders with a shared secret code could spot bait, and SMPC is cited, not run
+(a harder test is in Appendix~\ref{app:fails}).
 
-\textbf{Conclusion.} Unlogged deals stay visible in the reviewer's activations, and bait catches colluders without them.
+\textbf{Conclusion.} Unlogged deals show in activations, and bait catches colluders without them.
 
 \section*{Code and Data}
 Code, episodes, scores and pre-registration cards:\\
 \href{https://github.com/thehimalayanleo/swarm-collusion-probe/tree/swarm-3-early}{github.com/thehimalayanleo/swarm-collusion-probe}, branch \texttt{swarm-3-early}. Main files: \nolinkurl{swarm9.py}
 (testbed), \nolinkurl{swarm9_score.py} (scorer), \nolinkurl{online.py} (adaptive attacker),\\ \nolinkurl{honeypot.py} and
-\nolinkurl{honeypot22.py} (honeypot). In the code and appendices the studies are named SWARM-15 and 17 (probe vs.\ log monitors), 20 (adaptive attacker), 21 (honeypot) and 22 (strategic colluders). All code and experiments were made during the sprint (first commit
+\nolinkurl{honeypot22.py} (honeypot). In the code and appendices the studies are named SWARM-15 and 17 (probe vs.\ log monitors), 20 (adaptive attacker), 21 (honeypot), 22 (strategic colluders) and 23 (verdict-line test, \nolinkurl{tfidf_reply_test.py}). All code and experiments were made during the sprint (first commit
 2026-11-06).
 
 \section*{LLM Usage Statement}
@@ -405,6 +403,14 @@ pairs for differences in SWARM-21).}
 
 \textbf{SWARM-20 details.} A judge confirms that each effective attack asks for a favour. Of 3,200 final-round
 attempts, none was effective and missed. Log monitors catch 0.93 to 0.97.
+
+\textbf{SWARM-23 (verdict-line test, post hoc).} Registered before the run, on the SWARM-20 data with all monitors
+frozen. We change only the reply text that the log monitors read: (A) the full reply, (B) only its first line
+(\texttt{VERDICT: APPROVE}), (C) the full reply with waiver words masked. Best TF-IDF catch at its 5\% threshold:
+A 0.969 (reproduces SWARM-20), B 0.131 (false positives 0.063), C 0.963. The probe catches 1.000 in every arm
+because it reads activations before the reply. Rule: A within 0.005 of SWARM-20 and B at most 0.50; both hold, so
+the test passed. Masking waiver words alone does not remove the signal; the whole explanation carries it. We cut
+the reply to simulate a terse reviewer; we did not test whether a real colluder writes tersely.
 
 \section{Secret-shared bait: a worked example}\label{app:smpc}
 For each offer the overseer splits the bait bit $b$ (1 for bait, 0 for real) into Shamir shares
@@ -524,6 +530,7 @@ SWARM-19 & Free-text negatives from the same writer; template probe 0.36, below 
 SWARM-20 & Probe retrained on free text, online game with an adaptive attacker; 191 of 191 & \textbf{Passed} \\
 SWARM-21 & Bait flags warned colluders 40 of 40, honest 1 of 40 & \textbf{Passed} \\
 SWARM-22 & Strategic colluders vs.\ overseer-written bait; caught 40 of 40 but bait gate failed twice (0.83, 0.81) & no verdict \\
+SWARM-23 & Post hoc: log monitor on the verdict line only flags 0.13 (full reply 0.97); probe 1.00 & \textbf{Passed} \\
 \bottomrule
 \end{tabular}
 \caption{Every pre-registered study, in order. ``No verdict'' means a control failed, so the rule did not allow a

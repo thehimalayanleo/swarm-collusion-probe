@@ -1,5 +1,6 @@
 """Writes figdata.tex (pgfplots coordinates) for the SWARM-20 and SWARM-21 figures, read from their score.json files.
-Optional 4th argument: the SWARM-15 s4-score.json, for the simple SWARM-15 figure."""
+Optional 4th argument: the SWARM-15 s4-score.json, for the simple SWARM-15 figure.
+Optional 5th argument: the SWARM-23 swarm23.json, for the full-reply vs. verdict-line figure."""
 import json, sys
 s20 = json.load(open(sys.argv[1]))["P3"]
 s21 = json.load(open(sys.argv[2]))["P4"]
@@ -27,4 +28,10 @@ if len(sys.argv) > 4:
     out.append("\\def\\swfifteenlabels{" + ",".join(n for _, n in m15) + "}")
     out.append("\\def\\swfifteenprobe{" + f"({a['dense18']:.3f},{m15[0][1]})" + "}")
     out.append("\\def\\swfifteenpublic{" + " ".join(f"({a[k]:.3f},{n})" for k, n in m15[1:]) + "}")
+if len(sys.argv) > 5:
+    s23 = json.load(open(sys.argv[5]))
+    arms = [("A_full", "Full reply"), ("B_verdict_only", "Verdict line only")]
+    out.append("\\def\\swtwentythreearms{" + ",".join(n for _, n in arms) + "}")
+    out.append("\\def\\swtwentythreeprobe{" + " ".join(f"({n},{s23[k]['dense18']['catch']:.3f})" for k, n in arms) + "}")
+    out.append("\\def\\swtwentythreelog{" + " ".join(f"({n},{s23[k][s23[k]['best_tfidf']]['catch']:.3f})" for k, n in arms) + "}")
 open(sys.argv[3], "w").write("\n".join(out) + "\n")
