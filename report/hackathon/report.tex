@@ -106,17 +106,19 @@ access, the overseer reads layer 18 of the reviewer and flags collusion before t
 \label{fig:problem}
 \end{figure}
 
-\textbf{Contributions.} (1) A testbed where the logged input is identical across honest and collusive cases, so a
-monitor wins only by detecting the deal. (2) A probe that beats every tuned log monitor (SWARM-15, 17) and holds
-against an adaptive attacker (SWARM-20). (3) A honeypot that needs no activations, with a secret-shared bait list
-(SWARM-21).
+\textbf{Prior work.} AI control studies safety when a model may act against its overseer, and tests an untrusted
+monitor for collusion with synthetic attacks \cite{greenblatt2023control}. Agents can collude through hidden channels
+\cite{motwani2024secret}. Linear probes detect strategic deception \cite{goldowsky2025probes}, sabotage \cite{fibs2026}
+and sleeper agents \cite{macdiarmid2024sleeper}; recent work probes multi-agent collusion \cite{narcbench2026} and
+recruited agents \cite{precrime2026}, and black-to-white tests ask what white-box access adds over black-box monitors
+\cite{parrack2025b2w}.
 
-\textbf{Prior work.} AI control studies safety when a model may act against its overseers
-\cite{greenblatt2023control}; agents can collude through hidden channels \cite{motwani2024secret}. Recent work detects
-multi-agent collusion from activations \cite{narcbench2026} and probes when a recruited agent gives in
-\cite{precrime2026}. Linear probes detect strategic deception \cite{goldowsky2025probes}, sabotage
-\cite{fibs2026} and sleeper agents \cite{macdiarmid2024sleeper}, and black-to-white tests ask what white-box access adds
-over black-box monitors \cite{parrack2025b2w}. We add a fixed logged record and a strong, tuned black-box side.
+\textbf{What is new.} (1) \emph{A clean test.} Honest and collusive cases share the same logged request, so beating
+log monitors means detecting the deal, not a different input. (2) \emph{A fair baseline.} Eight log monitors get the
+same data, folds and tuning budget as the probe, and the probe beats all of them (SWARM-15, 17). (3) \emph{An adaptive
+attacker.} A second model rewrites its messages against the probe for three rounds, and the probe still catches every
+attack that works (SWARM-20). (4) \emph{A defence without activations.} A honeypot catches colluders that know bait
+exists, and SMPC keeps its bait list from any one server (SWARM-21).
 
 \section{Setup}
 \textbf{Reviewer.} Qwen3-4B \cite{qwen3}, greedy decoding, thinking off. The system prompt gives a team policy (a
@@ -192,15 +194,12 @@ refuses all offers. A colluder accepts deals, and if bait looks like a real deal
 also refusing real deals. Each of 40 held-out colluding and 40 honest Qwen3-4B agents gets 12 offers, 6 of them bait.
 The two kinds of agent differ in one prompt clause, a prior agreement with the partner, and every agent is warned
 about bait. We flag an agent when its bait acceptance reaches a threshold set at 5\% false alarms on calibration
-agents. The honeypot flags 40 of 40 colluders (interval 0.91 to 1.00) and 1 of 40 honest agents (0.001 to 0.13). This test is easy: colluders accept almost every offer (Figure~\ref{fig:adv}b), and the
-warning made no difference.
+agents. The honeypot flags 40 of 40 colluders (interval 0.91 to 1.00) and 1 of 40 honest agents (0.001 to 0.13). This test is easy: colluders accept almost every offer (Figure~\ref{fig:adv}b), warned or not.
 
 \textbf{Why the bait list must be secret.} If one server holds the list, a colluder needs to bribe only that server
-to dodge every bait, and the server could also frame an honest agent. We pair the honeypot with
-standard secure multi-party computation to remove this single point (Figure~\ref{fig:smpcmain}): with Shamir secret
-sharing \cite{shamir1979}, each server holds only a random share of each offer's bait label, and the BGW protocol
-\cite{bgw1988} computes the flag without opening any label. Three servers keep the list from
-any one server; four also tolerate one that lies (Appendix~\ref{app:smpc}).
+to dodge every bait, and the server could also frame an honest agent. Figure~\ref{fig:smpcmain} shows how SMPC (Shamir
+sharing \cite{shamir1979}, BGW \cite{bgw1988}) removes this single point. Three servers keep the list from any one
+server; four also tolerate one that lies (Appendix~\ref{app:smpc}).
 
 \begin{figure}[!t]
 \centering
@@ -213,9 +212,8 @@ any one server; four also tolerate one that lies (Appendix~\ref{app:smpc}).
 \foreach \k in {1,2,3} {\draw[ar] (l.east) -- (s\k.west); \draw[ar] (s\k.east) -- (j.west);}
 \draw[ar] (j) -- (f);
 \end{tikzpicture}}
-\captionof{figure}{SMPC keeps the bait list secret. Each offer's bait-or-real label is split into random
-shares on three servers. One share reveals nothing, so a bribed server cannot tell a colluder which offers are bait.
-The servers jointly compute only the flag.}
+\captionof{figure}{SMPC keeps the bait list secret. Each offer's bait label is split into random shares on three
+servers. One share reveals nothing, and only the flag is computed.}
 \label{fig:smpcmain}
 \end{minipage}\hfill
 \begin{minipage}[t]{0.49\linewidth}\centering
