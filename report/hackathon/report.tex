@@ -33,8 +33,8 @@ models that it deploys with white-box methods: it can read the reviewer's intern
 messages into the channels that agents use. With this access, can the overseer catch the collusion? 
 
 \textbf{Defence 1: a probe.} A simple linear classifier reads the reviewer's internal activations just before it writes
-its reply. The reply looks normal, but the deal is still visible inside the model. On templated messages the probe ranks
-every collusive case first (AUROC 1.000; shuffled labels give 0.50), while the best of eight tuned log monitors reaches 0.864. We then
+its reply. The reply looks normal, but the deal is still visible inside the model. On templated messages the probe beats
+all eight tuned monitors of the log on every held-out domain; the best of them reaches only AUROC 0.864. We then
 let a second model rewrite the private message for three rounds to slip past the probe. The probe still catches every
 attack that worked (191 of 191, each listed in Appendix~\ref{app:attacks}), with 6.9\% false alarms.
 
@@ -86,7 +86,7 @@ reviewer agreed to collude?}
 \draw[dashed, red!70!black] (9.2,-1.15) -- (9.2,0.05) node[above, font=\scriptsize]{$\tau$};
 \fill[red!70!black] (9.55,-0.16) circle (0.07) node[right, font=\scriptsize]{flag};
 \node[font=\scriptsize] at (8.9,-1.42) {score $\sigma(w^{\top}h)$};
-\node[font=\footnotesize, text=blue!60!black, align=center] at (3.2,-0.75) {\textbf{Defence 1: probe}\\reads the deal inside the\\model, \emph{before} the reply\\[2pt]\textbf{AUROC 1.000}};
+\node[font=\footnotesize, text=blue!60!black, align=center] at (3.2,-0.75) {\textbf{Defence 1: probe}\\reads the deal inside the\\model, \emph{before} the reply\\[2pt]\textbf{beats all 8 log monitors}};
 \node[sk, fill=orange!8, minimum width=3cm] (m) at (12.0,-0.75) {Baseline: log monitors\\see a routine approval\\[2pt]\textbf{best AUROC 0.864}};
 \draw[ar, blue!60!black] (6.6,0.6) -- (6.6,-0.28);
 \draw[ar, blue!60!black] (7.62,-0.52) -- (8.0,-0.52);
@@ -137,10 +137,10 @@ activations over the logged record only. Intervals are 95\% hierarchical bootstr
 \section{Results}
 \subsection{The probe beats every monitor of the logged record}
 The deal changes behaviour. On failing items the reviewer approves 0.44 of collusive cases, 1.00 of legitimate waivers
-and 0.08 of benign notes (Figure~\ref{fig:main}a). The probe reaches AUROC 1.000 on every held-out
-domain: every collusive episode scores above every other one, so the bootstrap interval has zero width. This is not a
-leak: shuffled labels give 0.505, the logged inputs are identical across cases, and a length-only classifier gives 0.32. It
-is easy because the deal is in the reviewer's input and the messages follow four templates. The best log monitor, TF-IDF on the reply, reaches 0.864 (Figure~\ref{fig:main}b). All 16 paired
+and 0.08 of benign notes (Figure~\ref{fig:main}a). On every held-out domain the probe scores
+every collusive episode above every other episode. This is easy for it because the deal is in the reviewer's input
+and the messages follow four templates. The logged inputs are identical across cases, so the log cannot carry the
+answer, and a classifier that sees only reply length scores 0.32. The best log monitor, TF-IDF on the reply, reaches 0.864 (Figure~\ref{fig:main}b). All 16 paired
 probe-minus-monitor lower bounds are above 0; the smallest gap is 0.105 (lower bound 0.029), against the probe on the
 logged record for C vs.\ L (Table~\ref{tab:p2}). A replication repeats the test on four new length-matched wordings with twice the items (5,108 episodes): the probe again beats every log monitor. On its hardest comparison the margin is small (0.017, lower bound 0.004). A monitor that reads the
 private message nearly ties the probe, so the probe helps only when the channel is not logged.
