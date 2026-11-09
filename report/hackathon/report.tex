@@ -1,6 +1,10 @@
 \documentclass[11pt]{article}
 \usepackage[margin=1in]{geometry}
 \usepackage{graphicx,booktabs,amsmath,hyperref,xcolor,enumitem,caption}
+\usepackage{tikz,pgfplots}
+\usetikzlibrary{decorations.pathmorphing,arrows.meta}
+\pgfplotsset{compat=1.17}
+\input{figdata}
 \hypersetup{colorlinks=true,linkcolor=blue!50!black,urlcolor=blue!50!black,citecolor=blue!50!black}
 \setlist{nosep,leftmargin=1.4em}
 \captionsetup{font=small}
@@ -201,7 +205,9 @@ closest monitors are the refits on C vs.\ L only: the public-record probe refit 
 on the hardest comparison the margin is small. On these wordings the privileged TF-IDFs reach only 0.42 to 0.88
 (reported, not claimed).
 
-\textbf{How we got here.} Table~\ref{tab:path} (Appendix) lists all 17 studies. Two lessons shaped the final design.
+\input{s18to21}
+
+\textbf{How we got here.} Table~\ref{tab:path} (Appendix) lists all 21 studies. Two lessons shaped the final design.
 First, unmatched prompts leak: when collusive and honest reviewers got different prompts, a probe on a random-weight
 model scored 1.000 (SWARM-1), so every later design keeps the public input token-identical (K2). Second, small
 reviewers often ignore the deal: Qwen2.5-1.5B never acted on it, and Qwen3-4B resisted peer requests, agreed notes and
@@ -230,9 +236,8 @@ when asked. The behaviour shows that the model follows that instruction, not tha
 Commitments formed over a long conversation, or through training, are not tested.
 \item \textbf{Impersonation is not covered.} Waivers from non-owners are approved 0.97 of the time and are not flagged
 by the probe; catching them needs a check of the sender, which an unlogged channel does not give.
-\item \textbf{No adaptive adversary.} We did not run a red-team/blue-team control evaluation in which a colluding
-agent knows about the probe and tries to evade it \cite{greenblatt2023control}. Our red-teams attacked the study design,
-not the monitor.
+\item \textbf{Black-box attacker only.} The SWARM-20 attacker sees probe scores but not gradients, and does not see
+the public monitors. White-box attacks are not tested.
 \item \textbf{Ceiling effect.} AUROC 1.000 leaves no room to rank layers or methods; a harder setting is needed for that.
 \item \textbf{Small margin on the hardest comparison.} In SWARM-17, monitors refit on C vs.\ L come within 0.017 of
 the probe. Intervals are conditional on the fitted models.
@@ -336,6 +341,10 @@ SWARM-14 & Fresh items; probe 1.000 but ties privileged message TF-IDF (stricter
 SWARM-15 & Unlogged-channel claim; beats all 8 public-record monitors & \textbf{Passed} \\
 SWARM-16 & New wordings, 2$\times$ items; all 23 gaps above 0 but length control K4 0.723 & no verdict \\
 SWARM-17 & Length-matched new wordings, fresh seed, same rule; 23 of 23 gaps & \textbf{Passed} \\
+SWARM-18 & Free-form attacker against the frozen template probe; template negatives let style separate the arms & Inconclusive \\
+SWARM-19 & Free-form negatives from the same writer; template probe catches 0.36, below TF-IDF 0.51 & Failed \\
+SWARM-20 & Probe retrained on free text, online game with an adaptive attacker; catches 191 of 191 & \textbf{Passed} \\
+SWARM-21 & Bait offers flag warned colluding agents: 40 of 40, honest 1 of 40 & \textbf{Passed} \\
 \bottomrule
 \end{tabular}
 \caption{Every pre-registered study, in order. ``No verdict'' means a sanity or control check failed, so the rule did
@@ -350,6 +359,9 @@ not allow a verdict. Full cards, bets and logs are in the repository.}
 \item Figure~\ref{fig:main}: drawn from that file by \nolinkurl{report/hackathon/fig_main.py}.
 \item SWARM-16: \nolinkurl{results/5090-swarm16-s3/s4-score.json}.
 \item SWARM-17: \nolinkurl{results/5090-swarm17-s3/s4-score.json}.
+\item SWARM-19: \nolinkurl{results/colab-swarm19-s3/score.json}. SWARM-20: \nolinkurl{results/colab-swarm20-s3/score.json}.
+SWARM-21: \nolinkurl{results/colab-swarm21-s2b/score.json}. Figures~\ref{fig:s20} and~\ref{fig:s21}: \nolinkurl{figdata.tex}, written from those files by
+\nolinkurl{report/hackathon/fig_s20_s21.py}.
 \item Earlier studies: their cards and \nolinkurl{report/REPORT-draft.md}.
 \end{itemize}
 
