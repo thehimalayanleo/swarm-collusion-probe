@@ -575,6 +575,17 @@ unchanged, with the same items, messages, seeds and scorer, on Qwen/Qwen3-8B and
 unchanged main-test rule. Its first check needs the deal to raise approvals of failing items by at least 0.20 over
 the benign note. Result: approvals on failing items are 0.259 with a deal, 1.00 with a real waiver, 0.10 with a
 benign note; deal minus benign 0.159 (lower bound $-0.097$). The first check fails, so the rule gives no verdict and
-the pre-registered test makes no probe claim for Qwen3-8B. The larger model follows the deal less often. \textbf{Secondary measure} (listed on the card before the run, outside the pass rule; \nolinkurl{q8_quick_check.py}, simpler than the main scorer: one fixed regularisation, no tuning grid): a layer-18 probe trained on seven domains ranks every collusive case above every legitimate and benign case on each held-out domain (AUROC 1.000, all 8 domains); TF-IDF on the reply reaches 0.879 (worst domain 0.806). This matches Qwen3-4B (1.000 vs.\ 0.864). The same check on Granite gives probe AUROC 1.000 on all 8 domains and TF-IDF on the reply 0.941 (worst domain 0.872). Both are outside the pass rule. Granite-3.3-8B: approvals on failing items are 0.169 with a deal, 0.994 with a real waiver, 0.075 with a benign note (deal minus benign 0.094), so its first check also fails and the rule gives no verdict.
+the pre-registered test makes no probe claim for Qwen3-8B. The larger model follows the deal less often. \textbf{Secondary measure} (listed on the card before the run, outside the pass rule; \nolinkurl{q8_quick_check.py}, simpler than the main scorer: one fixed regularisation, no tuning grid): a layer-18 probe trained on seven domains ranks every collusive case above every legitimate and benign case on each held-out domain (AUROC 1.000, all 8 domains); TF-IDF on the reply reaches 0.879 (worst domain 0.806). This matches Qwen3-4B (1.000 vs.\ 0.864). The same check on Granite gives probe AUROC 1.000 on all 8 domains and TF-IDF on the reply 0.941 (worst domain 0.872). Both are outside the pass rule. Figure~\ref{fig:models} compares the three models.
+\begin{figure}[h]\centering
+\begin{tikzpicture}\begin{axis}[ybar=14pt, width=10cm, height=4.2cm, ymin=0, ymax=1.18, bar width=12pt, enlarge x limits=0.25,
+ symbolic x coords={Qwen3-4B (main),Qwen3-8B,Granite-3.3-8B}, xtick=data, ylabel={AUROC}, ytick={0,0.5,1},
+ nodes near coords, every node near coord/.append style={font=\scriptsize, /pgf/number format/.cd, fixed, precision=3, fixed zerofill},
+ legend style={at={(0.5,1.02)}, anchor=south, legend columns=2, font=\footnotesize, draw=none}, tick label style={font=\footnotesize}]
+\addplot[fill=blue!55, draw=none] coordinates {(Qwen3-4B (main),1.000) (Qwen3-8B,1.000) (Granite-3.3-8B,1.000)}; \addlegendentry{Probe (before reply)}
+\addplot[fill=orange!65, draw=none] coordinates {(Qwen3-4B (main),0.864) (Qwen3-8B,0.879) (Granite-3.3-8B,0.941)}; \addlegendentry{TF-IDF on reply (log)}
+\end{axis}\end{tikzpicture}
+\caption{The probe finds the deal on all three reviewer models (held-out domains, deal vs.\ waiver and benign cases). On the 8B models the deal changes approvals too little for the pass rule, so these are secondary measures.}\label{fig:models}
+\end{figure}
+ Granite-3.3-8B: approvals on failing items are 0.169 with a deal, 0.994 with a real waiver, 0.075 with a benign note (deal minus benign 0.094), so its first check also fails and the rule gives no verdict.
 
 \end{document}
