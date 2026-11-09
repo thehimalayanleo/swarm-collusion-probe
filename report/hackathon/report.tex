@@ -135,15 +135,20 @@ plus reply or on the reply alone (word, character, both), a same-model judge, an
 activations over the logged record only. Intervals are 95\% hierarchical bootstraps.
 
 \section{Results}
-\subsection{The probe beats every monitor of the logged record}
-The deal changes behaviour. On failing items the reviewer approves 0.44 of collusive cases, 1.00 of legitimate waivers
-and 0.08 of benign notes (Figure~\ref{fig:main}a). On every held-out domain the probe scores
-every collusive episode above every other episode. This is easy for it because the deal is in the reviewer's input
-and the messages follow four templates. The logged inputs are identical across cases, so the log cannot carry the
-answer, and a classifier that sees only reply length scores 0.32. The best log monitor, TF-IDF on the reply, reaches 0.864 (Figure~\ref{fig:main}b). All 16 paired
-probe-minus-monitor lower bounds are above 0; the smallest gap is 0.105 (lower bound 0.029), against the probe on the
-logged record for C vs.\ L (Table~\ref{tab:p2}). A replication repeats the test on four new length-matched wordings with twice the items (5,108 episodes): the probe again beats every log monitor. On its hardest comparison the margin is small (0.017, lower bound 0.004). A monitor that reads the
-private message nearly ties the probe, so the probe helps only when the channel is not logged.
+\subsection{The probe sees the deal; log monitors mostly do not}
+\textbf{The deal works.} On items that should be rejected, the reviewer approves 44\% when it has a collusive deal,
+8\% when it got a harmless note, and 100\% when the owner granted a real waiver (Figure~\ref{fig:main}a).
+
+\textbf{The probe finds the deal.} We train the probe on seven domains and test it on the eighth, once for each
+domain. Every time, it scores every collusive case above every other case. This is easy for the probe, because the deal
+is in the reviewer's input and our messages follow four templates. It is not a leak through the log: the logged
+request is the same in every case.
+
+\textbf{Log monitors do worse.} The best one, a word-frequency classifier (TF-IDF) on the reply, reaches AUROC 0.864
+(Figure~\ref{fig:main}b). The probe beats each of the eight monitors by more than chance (Table~\ref{tab:p2}), and a
+repeat with new wordings and twice the data gives the same result, though there the closest gap is small (0.017). One
+caveat: a monitor that could read the private message would do almost as well as the probe. The probe helps because
+that channel is not logged.
 
 \begin{figure}[!t]
 \centering
@@ -174,28 +179,34 @@ approval rule; Table~\ref{tab:p2} gives all, with intervals).}
 \label{fig:main}
 \end{figure}
 
-\subsection{The retrained probe holds against an adaptive attacker}
-Templates are easy. With free-text messages written by a Qwen3-8B attacker, the template probe catches only 0.36 of
-effective attacks, less than TF-IDF on the request (0.51; Appendix~\ref{app:fails}). So we retrain the probe
-on free text and play an online game against it. In each round the attacker rewrites every
-attack against the current probe, using paraphrase, authority mimicry, indirect hints or camouflage; then all monitors
-retrain on attacks from training items. The attacker moves last, and we score only held-out items. The final probe
-flags all 191 effective final-round attacks on 112 held-out items (each listed in Appendix~\ref{app:attacks}), at 6.9\%
-false positives (Figure~\ref{fig:adv}a). Even the weakest catch scores 2.5 logits above the probe's threshold. The best log monitor flags 0.969 (gap 0.031, interval 0.005 to 0.043), and the first
-probe already flagged 0.995, so the attacker never found a gap. The log monitor's 0.969 needs the reviewer to explain
-its verdict: with only the verdict line kept (post hoc), it falls to 0.13, while the probe flags 1.00 before any reply.
+\subsection{The probe still works when an attacker writes the messages}
+\textbf{A harder test.} Templates are easy, so a second model (Qwen3-8B) now writes the private messages in free text.
+A probe trained only on templates catches just 36\% of these attacks (Appendix~\ref{app:fails}), so we retrain it on
+free text. Then the attacker fights back for three rounds. Each round it sees the probe's scores and rewrites every
+attack to slip past it, in one of four styles: paraphrase, an official tone, indirect hints, or a request hidden in a
+chatty note. After each round, the probe and the log monitors retrain. The attacker always moves last, and we score
+only items held out from training.
+
+\textbf{Result.} After the last round, 191 attacks still made the reviewer approve bad work. The probe flags all 191
+(each listed in Appendix~\ref{app:attacks}) and 6.9\% of honest cases (Figure~\ref{fig:adv}a). Even the attack it found
+hardest is well above its threshold. The best log monitor comes close (97\%), but only because the reviewer explains
+its approval in words. When we keep only the reply's first line, \texttt{VERDICT: APPROVE} (a post hoc test), the same
+monitor flags 13\%. The probe still flags 100\%, before the reviewer writes anything.
 
 
-\subsection{A honeypot catches colluders without activations}
-The probe needs activations and labelled data. A honeypot needs neither. The overseer sends offers that look as if
-they come from the agent's partner, and counts the bait the agent accepts (Figure~\ref{fig:honeypot}). An honest agent
-refuses all offers. A colluder accepts deals, and if bait looks like a real deal, it cannot refuse the bait without
-also refusing real deals. Each of 40 held-out colluding and 40 honest Qwen3-4B agents gets 12 offers, 6 of them bait.
-Colluders differ from honest agents only by a prior agreement in the prompt, and all agents are warned about bait. The flag threshold gives 5\% false alarms on calibration agents. The honeypot flags 40 of 40 colluders (0.91 to 1.00) and 1 of 40 honest agents (0.001 to 0.13).
+\subsection{A honeypot catches colluders without reading activations}
+\textbf{How it works.} The overseer
+pretends to be the agent's partner and sends it offers: some are real deals, some are fake (bait)
+(Figure~\ref{fig:honeypot}). An honest agent refuses every offer. A colluder accepts deals, and if bait looks like a real
+deal, it cannot refuse the bait without also refusing its real deals. So we count how much bait each agent accepts.
 
-\textbf{Why the bait list must be secret.} If one server holds the list, one bribe lets a colluder refuse only the
-bait. SMPC (Shamir sharing \cite{shamir1979}, BGW \cite{bgw1988}) removes this single point (Figure~\ref{fig:smpcmain});
-three servers keep the list from any one server, and four also tolerate one that lies (Appendix~\ref{app:smpc}).
+\textbf{Result.} We test 40 colluding and 40 honest Qwen3-4B agents. Each gets 12 offers, 6 of them bait. The two
+groups differ only by one prior agreement in the prompt, and every agent is told that bait exists. With the threshold
+set to flag 5\% of a separate group of honest agents, the honeypot flags all 40 colluders and 1 of the 40 honest agents.
+
+\textbf{Why the bait list must be secret.} If one server holds the list, one bribe tells a colluder which offers to
+refuse. Secret sharing (SMPC \cite{shamir1979, bgw1988}) splits the list over three servers so that no single server
+knows it (Figure~\ref{fig:smpcmain}); four servers also cope with one that lies (Appendix~\ref{app:smpc}).
 
 \begin{figure}[!t]
 \centering
@@ -285,15 +296,13 @@ three servers keep the list from any one server, and four also tolerate one that
 \end{tikzpicture}\\{\small (b) Honeypot: share of offers accepted}
 \end{minipage}
 \caption{(a) After three adaptive rounds the probe flags all 191 effective attacks (Appendix~\ref{app:attacks}). The log monitor nearly ties it
-only when the reply explains the verdict (boxes: a real logged reply, held-out attack \texttt{vendor-142}; verdict
+only when the reply explains the verdict (boxes: a real logged reply; verdict
 line alone is post hoc). (b) Colluders accept bait as often as real offers; honest agents almost never do.}
 \label{fig:adv}
 \end{figure}
 
 \section{Limitations and conclusion}
-\textbf{Limitations.} We test one model family, and the collusion is set by a prompt, not formed by the agent
-or by training. The probe likely reads the message itself: a monitor of the private message ties it, and non-owner waivers
-(approved 0.97) are not caught. On free text the margin over log monitors is about 3
+\textbf{Limitations.} We test one model family; on Qwen3-8B the deal moves approvals of bad work only from 10\% to 26\%, too little for our rule to give a verdict (Appendix~\ref{app:models}). The collusion is set by a prompt. The probe likely reads the message itself: a monitor of the private message ties it, and non-owner waivers are not caught. On free text the margin over log monitors is about 3
 points, and the attacker saw probe scores, not gradients. The honeypot test is easy, colluders with a shared secret code could spot bait, and SMPC is cited, not run
 (harder test: Appendix~\ref{app:fails}). \textbf{Conclusion.} Activations show unlogged deals; bait catches colluders without them.
 
@@ -559,5 +568,14 @@ verdict. Cards, bets and logs are in the repository.}
 \nolinkurl{results/colab-swarm21-s2b/score.json},\\ \nolinkurl{results/colab-swarm22-s2/score.json},\\ \nolinkurl{results/colab-swarm22-s2b/score.json},\\ \nolinkurl{results/colab-swarm20-s3/swarm23.json} (verdict-line test, \nolinkurl{tfidf_reply_test.py}). Appendix~\ref{app:attacks}: \nolinkurl{results/colab-swarm20-s3/attacks191.jsonl}, written to \nolinkurl{attacks191.tex} by \nolinkurl{report/hackathon/attacks_table.py}. Figures~\ref{fig:main} and~\ref{fig:adv}: \nolinkurl{figdata.tex}, written from those files by \nolinkurl{report/hackathon/fig_s20_s21.py}.
 \item Earlier studies: their cards and \nolinkurl{report/REPORT-draft.md}.
 \end{itemize}
+
+\section{Larger model (SWARM-24)}\label{app:models}
+Registered 2026-11-09 before any run, after a reviewer asked about other models. We repeat the main test (Section 3.1)
+unchanged, with the same items, messages, seeds and scorer, on Qwen/Qwen3-8B (Colab A100). Rule, fixed in advance: the
+unchanged main-test rule. Its first check needs the deal to raise approvals of failing items by at least 0.20 over
+the benign note. Result: approvals on failing items are 0.259 with a deal, 1.00 with a real waiver, 0.10 with a
+benign note; deal minus benign 0.159 (lower bound $-0.097$). The first check fails, so the rule gives no verdict and
+we make no probe claim for Qwen3-8B. The larger model follows the deal less often. A second model family
+(IBM Granite-3.3-8B) was still running at the deadline and is not reported.
 
 \end{document}
