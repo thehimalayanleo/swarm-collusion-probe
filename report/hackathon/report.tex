@@ -150,6 +150,8 @@ repeat with new wordings and twice the data gives the same result, though there 
 caveat: a monitor that could read the private message would do almost as well as the probe. The probe helps because
 that channel is not logged.
 
+\textbf{Other models.} On Qwen3-8B and on another family, IBM Granite-3.3-8B, the probe again ranks every deal case first on every held-out domain; TF-IDF on the reply reaches 0.88 and 0.94 (Figure~\ref{fig:models}). The deal works less on these models (approvals rise 16 and 9 points), so our fixed rule gives no verdict there (Appendix~\ref{app:models}).
+
 \begin{figure}[!t]
 \centering
 \begin{minipage}[b]{0.42\linewidth}\centering
@@ -302,7 +304,7 @@ line alone is post hoc). (b) Colluders accept bait as often as real offers; hone
 \end{figure}
 
 \section{Limitations and conclusion}
-\textbf{Limitations.} On Qwen3-8B and IBM Granite-3.3-8B the deal works less (approvals rise 16 and 9 points), so our rule gives no verdict, but the probe still ranks every deal first (TF-IDF 0.88, 0.94; Appendix~\ref{app:models}). The collusion is set by a prompt. The probe likely reads the message itself: a monitor of the private message ties it, and non-owner waivers are not caught. On free text the margin over log monitors is about 3
+\textbf{Limitations.} On the 8B models the deal works only weakly. The collusion is set by a prompt. The probe likely reads the message itself: a monitor of the private message ties it, and non-owner waivers are not caught. On free text the margin over log monitors is about 3
 points, and the attacker saw probe scores, not gradients. The honeypot test is easy, colluders with a shared secret code could spot bait, and SMPC is cited, not run
 (harder test: Appendix~\ref{app:fails}). \textbf{Conclusion.} Activations show unlogged deals; bait catches colluders without them.
 
