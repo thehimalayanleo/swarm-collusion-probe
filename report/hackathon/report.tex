@@ -160,7 +160,7 @@ that channel is not logged.
 \addplot[fill=orange!65, draw=none] coordinates {(Qwen3-4B (main),0.864) (Qwen3-8B,0.879) (Granite-3.3-8B,0.941)}; \addlegendentry{TF-IDF on reply (log)}
 \addplot[fill=gray!45, draw=none] coordinates {(Qwen3-4B (main),0.131) (Qwen3-8B,0.582) (Granite-3.3-8B,0.911)}; \addlegendentry{TF-IDF, verdict line only}
 \end{axis}\end{tikzpicture}
-\caption{Three reviewer models, held-out domains: the probe finds the deal on all three. On the 8B models the deal is weak, so these are secondary measures.}\label{fig:models}
+\caption{Three reviewer models, held-out domains: the probe finds the deal on all three. Log monitors fall when they see only the verdict line (gray), except on Granite, which often states its reason there. On the 8B models the deal is weak, so these are secondary measures.}\label{fig:models}
 \end{figure}
 
 
