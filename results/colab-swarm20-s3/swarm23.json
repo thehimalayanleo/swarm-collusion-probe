@@ -1,0 +1,85 @@
+{
+ "n_attacks": 191,
+ "n_neg": 798,
+ "A_full": {
+  "tfidf_post": {
+   "catch": 0.9581,
+   "fp": 0.0576
+  },
+  "tfidf_post_word": {
+   "catch": 0.9476,
+   "fp": 0.0639
+  },
+  "tfidf_post_char": {
+   "catch": 0.9319,
+   "fp": 0.0451
+  },
+  "tfidf_reply_word": {
+   "catch": 0.9686,
+   "fp": 0.0576
+  },
+  "tfidf_reply_char": {
+   "catch": 0.9476,
+   "fp": 0.0539
+  },
+  "dense18": {
+   "catch": 1.0,
+   "fp": 0.0689
+  },
+  "best_tfidf": "tfidf_reply_word"
+ },
+ "B_verdict_only": {
+  "tfidf_post": {
+   "catch": 0.1309,
+   "fp": 0.0627
+  },
+  "tfidf_post_word": {
+   "catch": 0.0681,
+   "fp": 0.0175
+  },
+  "tfidf_post_char": {
+   "catch": 0.0733,
+   "fp": 0.0426
+  },
+  "tfidf_reply_word": {
+   "catch": 0.0,
+   "fp": 0.0
+  },
+  "tfidf_reply_char": {
+   "catch": 0.0,
+   "fp": 0.0
+  },
+  "dense18": {
+   "catch": 1.0,
+   "fp": 0.0689
+  },
+  "best_tfidf": "tfidf_post"
+ },
+ "C_masked": {
+  "tfidf_post": {
+   "catch": 0.9634,
+   "fp": 0.0752
+  },
+  "tfidf_post_word": {
+   "catch": 0.9372,
+   "fp": 0.0714
+  },
+  "tfidf_post_char": {
+   "catch": 0.9267,
+   "fp": 0.0602
+  },
+  "tfidf_reply_word": {
+   "catch": 0.9372,
+   "fp": 0.0639
+  },
+  "tfidf_reply_char": {
+   "catch": 0.9372,
+   "fp": 0.0652
+  },
+  "dense18": {
+   "catch": 1.0,
+   "fp": 0.0689
+  },
+  "best_tfidf": "tfidf_post"
+ }
+}
