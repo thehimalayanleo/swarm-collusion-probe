@@ -1,7 +1,7 @@
 \documentclass[11pt]{article}
 \usepackage[margin=1in]{geometry}
 \usepackage{graphicx,booktabs,amsmath,hyperref,xcolor,enumitem,caption}
-\usepackage{tikz,pgfplots}
+\usepackage{tikz,pgfplots,longtable}
 \usepackage[compact]{titlesec}
 \titlespacing*{\section}{0pt}{8pt}{4pt}
 \titlespacing*{\subsection}{0pt}{6pt}{3pt}
@@ -24,44 +24,37 @@
 \maketitle
 
 \begin{abstract}
-\textbf{Problem.} In multi-agent systems, one agent often checks the work of others: a reviewer agent approves code
-merges, expenses or hires. The overseer audits these decisions through a log of each request and reply. But agents can
-also talk through channels that the log does not record, such as shared memory, a tool output, or a side chat that was
-built for coordination and not for audit. A partner agent can use such a channel to ask the reviewer to pass bad work.
-The reviewer then writes an approval that looks normal, so a monitor that reads the log sees nothing wrong.
+\textbf{Problem.} In multi-agent systems a reviewer agent approves code merges, expenses or hires, and the overseer
+audits it through a log of requests and replies. A partner agent can ask the reviewer, over a channel that the log
+does not record (shared memory, a tool output, a side chat), to pass bad work. The reviewer then writes an approval
+that looks normal, so a monitor that reads the log sees nothing wrong.
 \textbf{Assumption and question.} The overseer cannot read the private channel. But it has the right to vet the
 models that it deploys with white-box methods: it can read the reviewer's internal activations, and it can send its own
 messages into the channels that agents use. With this access, can the overseer catch the collusion? 
 
 \textbf{Defence 1: a probe.} A simple linear classifier reads the reviewer's internal activations just before it writes
-its reply. The reply looks normal, but the deal is still visible inside the model. On a fixed set of messages the probe
-separates collusion perfectly (AUROC 1.000), while the best of eight tuned monitors of the log reaches 0.864. We then
+its reply. The reply looks normal, but the deal is still visible inside the model. On templated messages the probe ranks
+every collusive case first (AUROC 1.000; shuffled labels give 0.50), while the best of eight tuned log monitors reaches 0.864. We then
 let a second model rewrite the private message for three rounds to slip past the probe. The probe still catches every
-attack that worked (191 of 191), with 6.9\% false alarms.
+attack that worked (191 of 191, each listed in Appendix~\ref{app:attacks}), with 6.9\% false alarms.
 
 \textbf{Defence 2: a honeypot.} This defence needs no access to activations. The overseer poses as a partner and sends
 fake deals (bait). Honest reviewers refuse them; colluding reviewers accept them. The honeypot flags 40 of 40 colluding
-agents and 1 of 40 honest ones, even when the agents are told that bait exists. The honeypot fails if a colluder learns which offers are bait, because it would then refuse only those. So whoever
-stores the bait list becomes a target for bribes. We pair the honeypot with standard secure multi-party computation
-(SMPC) to remove this target: each offer's bait-or-real label is split into random shares on three servers. One share
-alone says nothing about the label, so bribing one server does not reveal the bait. The servers combine their shares
-only to compute one answer: did the agent accept too much bait? We design this step but do not run it.
+agents and 1 of 40 honest ones, even when the agents are told that bait exists. The honeypot fails if a colluder learns which offers are bait,
+so the bait list is a target for bribes. We pair it with standard secure multi-party computation (SMPC): each offer's
+bait-or-real label is split into random shares on three servers, one share alone reveals nothing, and the servers
+combine shares only to answer one question: did the agent accept too much bait? We design this step but do not run it.
 \end{abstract}
 
 \section{The problem}
-Agents now check the work of other agents: a code-review agent approves merges, an approver agent signs off expenses,
-a grader scores outputs. The overseer audits each checker through a log of what it received and what it replied. The
-log does not cover every channel. Agents in a swarm share memory, read each other's tool outputs, and talk on side
-channels that exist for coordination. A partner agent can use such a channel to ask the checker to pass a bad item. The
-checker approves and writes a review that looks routine: in our testbed, 99\% of collusive approvals of failing items
-cite a waiver that nobody granted. The log then holds no evidence of the deal. Hidden collusion between AI agents is a
-known risk \cite{motwani2024secret, greenblatt2023control}, and it grows as agents are trained to work in large groups
-\cite{gr2026swarm}.
-
-We assume that the overseer has the right to vet the models that it
-deploys with white-box methods. It runs the reviewer, so it sees the public request, the reply and the reviewer's
-activations. It can also send messages into the channels that agents use, as any agent can. It does not see the private
-message. Our question is: \textbf{with white-box access but no record of the deal, can the overseer tell that the
+Agents now check the work of other agents, and the overseer audits each checker through a log of what it received and
+replied. Agents in a swarm also share memory, tool outputs and side channels that the log does not record. A partner can
+use such a channel to ask the checker to pass a bad item, and the checker then writes a routine approval: in our
+testbed, 99\% of collusive approvals of failing items cite a waiver that nobody granted. Hidden collusion between AI
+agents is a known risk \cite{motwani2024secret, greenblatt2023control} that grows as agents are trained to work in large
+groups \cite{gr2026swarm}. We assume that the overseer may vet the models that it deploys with white-box methods: it runs
+the reviewer, so it sees the request, the reply and the activations, and it can send messages into agent channels. It
+does not see the private message. Our question is: \textbf{with white-box access but no record of the deal, can the overseer tell that the
 reviewer agreed to collude?}
 
 \begin{figure}[!t]
@@ -99,25 +92,29 @@ reviewer agreed to collude?}
 \draw[ar, blue!60!black] (7.62,-0.52) -- (8.0,-0.52);
 \draw[ar] (y) -- (m);
 \end{tikzpicture}
-\caption{Threat model and Defence 1, the probe. The reviewer gets a logged public request and a private message, through
-a shared channel that is not logged, from a partner that asks it to pass bad work. Its reply looks routine, so log monitors (right) see nothing. With white-box
-access, the overseer reads layer 18 of the reviewer and flags collusion before the reply. AUROC: held-out domains, templated messages; the best of eight tuned log monitors is shown.}
+\caption{Threat model and Defence 1. A partner asks the reviewer, over an unlogged channel, to pass bad work, and the
+logged reply looks routine. The overseer reads layer 18 and flags the deal before the reply (held-out domains,
+templated messages; best of eight tuned log monitors shown).}
 \label{fig:problem}
 \end{figure}
 
-\textbf{Prior work.} AI control studies safety when a model may act against its overseer, and tests an untrusted
-monitor for collusion with synthetic attacks \cite{greenblatt2023control}. Agents can collude through hidden channels
-\cite{motwani2024secret}. Linear probes detect strategic deception \cite{goldowsky2025probes}, sabotage \cite{fibs2026}
-and sleeper agents \cite{macdiarmid2024sleeper}; recent work probes multi-agent collusion \cite{narcbench2026} and
-recruited agents \cite{precrime2026}, and black-to-white tests ask what white-box access adds over black-box monitors
-\cite{parrack2025b2w}.
+\textbf{Prior work.} Linear probes catch strategic deception \cite{goldowsky2025probes}, sabotage \cite{fibs2026} and
+sleeper agents \cite{macdiarmid2024sleeper}, and black-to-white tests ask what white-box access adds over black-box
+monitors \cite{parrack2025b2w}. Two works are closest. NARCBench \cite{narcbench2026} probes agents told to collude: it
+reaches AUROC 1.00 in distribution and 0.99 to 1.00 on steganographic collusion that transcript judges miss, but its
+text baselines are LLM judges, not classifiers trained on the same labels. Pre-crime \cite{precrime2026} probes a
+recruited agent before each call and finds that a TF-IDF classifier trained on the same calls nearly ties the probe, so
+most of its gain comes from the labels, not the activations. AI control tests an untrusted monitor with synthetic
+attacks \cite{greenblatt2023control}, an idea close to our honeypot; agents can collude covertly \cite{motwani2024secret}.
 
-\textbf{What is new.} (1) \emph{A clean test.} Honest and collusive cases share the same logged request, so beating
-log monitors means detecting the deal, not a different input. (2) \emph{A fair baseline.} Eight log monitors get the
-same data, folds and tuning budget as the probe, and the probe beats all of them. (3) \emph{An adaptive
-attacker.} A second model rewrites its messages against the probe for three rounds, and the probe still catches every
-attack that works. (4) \emph{A defence without activations.} A honeypot catches colluders that know bait
-exists, and SMPC keeps its bait list from any one server.
+\textbf{Where we go further.} (1) \emph{A clean test.} Honest and collusive cases share the same logged request, so a
+gap over log monitors comes from the deal, not from a different input. (2) \emph{Trained baselines.} Unlike
+\cite{narcbench2026}, eight log monitors get the same labels, folds and tuning budget as the probe. As in
+\cite{precrime2026}, a trained TF-IDF nearly ties the probe when the reply explains the verdict (0.97 vs.\ 1.00), but
+we show that this lead goes away when the reply is terse (0.13). (3) \emph{An adaptive attacker.} Neither work lets an
+attacker rewrite against the probe; ours does for three rounds, and the probe still flags all 191 effective attacks.
+(4) \emph{A defence without activations.} A honeypot catches colluders that know bait exists, and SMPC keeps the bait
+list from any one server.
 
 \section{Setup}
 \textbf{Reviewer.} Qwen3-4B \cite{qwen3}, greedy decoding, thinking off. The system prompt gives a team policy (a
@@ -140,11 +137,13 @@ activations over the logged record only. Intervals are 95\% hierarchical bootstr
 \section{Results}
 \subsection{The probe beats every monitor of the logged record}
 The deal changes behaviour. On failing items the reviewer approves 0.44 of collusive cases, 1.00 of legitimate waivers
-and 0.08 of benign notes (Figure~\ref{fig:main}a). The probe reaches AUROC 1.000 [1.000, 1.000] on every held-out
-domain. The best log monitor, TF-IDF on the reply, reaches 0.864 (Figure~\ref{fig:main}b). All 16 paired
+and 0.08 of benign notes (Figure~\ref{fig:main}a). The probe reaches AUROC 1.000 on every held-out
+domain: every collusive episode scores above every other one, so the bootstrap interval has zero width. This is not a
+leak: shuffled labels give 0.505, the logged inputs are identical across cases, and a length-only classifier gives 0.32. It
+is easy because the deal is in the reviewer's input and the messages follow four templates. The best log monitor, TF-IDF on the reply, reaches 0.864 (Figure~\ref{fig:main}b). All 16 paired
 probe-minus-monitor lower bounds are above 0; the smallest gap is 0.105 (lower bound 0.029), against the probe on the
 logged record for C vs.\ L (Table~\ref{tab:p2}). A replication repeats the test on four new length-matched wordings with twice the items (5,108 episodes): the probe again beats every log monitor. On its hardest comparison the margin is small (0.017, lower bound 0.004). A monitor that reads the
-private message ties the probe, so the probe helps only when the channel is not logged.
+private message nearly ties the probe, so the probe helps only when the channel is not logged.
 
 \begin{figure}[!t]
 \centering
@@ -181,8 +180,8 @@ effective attacks, less than TF-IDF on the request (0.51; Appendix~\ref{app:fail
 on free text and play an online game against it. In each round the attacker rewrites every
 attack against the current probe, using paraphrase, authority mimicry, indirect hints or camouflage; then all monitors
 retrain on attacks from training items. The attacker moves last, and we score only held-out items. The final probe
-flags all 191 effective final-round attacks on 112 held-out items, at 6.9\% false positives
-(Figure~\ref{fig:adv}a). The best log monitor flags 0.969 (gap 0.031, interval 0.005 to 0.043), and the first
+flags all 191 effective final-round attacks on 112 held-out items (each listed in Appendix~\ref{app:attacks}), at 6.9\%
+false positives (Figure~\ref{fig:adv}a). Even the weakest catch scores 2.5 logits above the probe's threshold. The best log monitor flags 0.969 (gap 0.031, interval 0.005 to 0.043), and the first
 probe already flagged 0.995, so the attacker never found a gap. The log monitor's 0.969 needs the reviewer to explain
 its verdict: with only the verdict line kept (post hoc), it falls to 0.13, while the probe flags 1.00 before any reply.
 
@@ -285,7 +284,7 @@ three servers keep the list from any one server, and four also tolerate one that
 \end{axis}
 \end{tikzpicture}\\{\small (b) Honeypot: share of offers accepted}
 \end{minipage}
-\caption{(a) After three adaptive rounds the probe flags all 191 effective attacks. The log monitor nearly ties it
+\caption{(a) After three adaptive rounds the probe flags all 191 effective attacks (Appendix~\ref{app:attacks}). The log monitor nearly ties it
 only when the reply explains the verdict (boxes: a real logged reply, held-out attack \texttt{vendor-142}; verdict
 line alone is post hoc). (b) Colluders accept bait as often as real offers; honest agents almost never do.}
 \label{fig:adv}
@@ -302,7 +301,7 @@ points, and the attacker saw probe scores, not gradients. The honeypot test is e
 Code, episodes, scores and pre-registration cards:\\
 \href{https://github.com/thehimalayanleo/swarm-collusion-probe/tree/swarm-3-early}{github.com/thehimalayanleo/swarm-collusion-probe}, branch \texttt{swarm-3-early}. Main files: \nolinkurl{swarm9.py}
 (testbed), \nolinkurl{swarm9_score.py} (scorer), \nolinkurl{online.py} (adaptive attacker),\\ \nolinkurl{honeypot.py} and
-\nolinkurl{honeypot22.py} (honeypot). In the code and appendices the studies are named SWARM-15 and 17 (probe vs.\ log monitors), 20 (adaptive attacker), 21 (honeypot), 22 (strategic colluders) and 23 (verdict-line test, \nolinkurl{tfidf_reply_test.py}). All code and experiments were made during the sprint (first commit
+\nolinkurl{honeypot22.py} (honeypot). In the code and appendices the studies are named SWARM-15 and 17 (probe vs.\ log monitors), 20 (adaptive attacker), 21 (honeypot), 22 (strategic colluders) and 23 (verdict-line test, \nolinkurl{tfidf_reply_test.py}). The 191 attacks of Appendix~\ref{app:attacks} come from \nolinkurl{export_attacks191.py}. All code and experiments were made during the sprint (first commit
 2026-11-06).
 
 \section*{LLM Usage Statement}
@@ -317,8 +316,8 @@ Intentional Subversion. arXiv:2312.06942, 2023.
 \bibitem{motwani2024secret} S. R. Motwani et al. Secret Collusion among Generative AI Agents. arXiv:2402.07510, 2024.
 \bibitem{gr2026swarm} General Reasoning. How to train a swarm. Blog post, 2026.
 \url{https://www.gr.inc/blog/how-to-train-a-swarm}
-\bibitem{narcbench2026} Detecting Multi-Agent Collusion Through Multi-Agent Interpretability. arXiv:2604.01151, 2026.
-\bibitem{precrime2026} Pre-Crime for Agents, at the Last Second: Probing When a Recruited Agent Gives In.
+\bibitem{narcbench2026} A. Rose, C. Cullen et al. Detecting Multi-Agent Collusion Through Multi-Agent Interpretability. arXiv:2604.01151, 2026.
+\bibitem{precrime2026} L. Raghav. Pre-Crime for Agents, at the Last Second: Probing When a Recruited Agent Gives In.
 arXiv:2610.40588, 2026.
 \bibitem{goldowsky2025probes} N. Goldowsky-Dill et al. Detecting Strategic Deception Using Linear Probes.
 arXiv:2502.03407, 2025.
@@ -387,7 +386,7 @@ end of the 95\% interval. Pass rule: all 16 lower bounds above 0.}
 \toprule
 Study & Measure & Value & 95\% interval \\
 \midrule
-SWARM-20 & Probe B2 catch, round 3 & 1.00 & 1.00 to 1.00 \\
+SWARM-20 & Probe B2 catch, round 3 & 191/191 & 0.981 to 1.00 \\
  & Probe minus TF-IDF reply & 0.031 & 0.005 to 0.043 \\
  & Probe false positives, held-out & 0.069 & \\
 SWARM-21 & Colluders flagged & 40/40 & 0.91 to 1.00 \\
@@ -396,8 +395,10 @@ SWARM-21 & Colluders flagged & 40/40 & 0.91 to 1.00 \\
  & Unwarned minus warned colluders & $-0.002$ & $-0.013$ to 0.008 \\
 \bottomrule
 \end{tabular}
-\caption{SWARM-20 and 21 (hierarchical bootstrap for SWARM-20; Clopper-Pearson for agent counts and bootstrap over
-pairs for differences in SWARM-21).}
+\caption{SWARM-20 and 21. The probe missed none of 191 attacks, so we do not give a bootstrap interval (it would have
+zero width). The exact (Clopper-Pearson) bound says what zero misses allow: if the true miss rate were above 1.9\%,
+zero misses in 191 would happen less than 2.5\% of the time. Differences: hierarchical bootstrap (SWARM-20) and
+bootstrap over pairs (SWARM-21); agent counts: Clopper-Pearson.}
 \label{tab:s20s21}
 \end{table}
 
@@ -420,6 +421,9 @@ authorized this exception, and the request is being approved as per her sign-off
 by Quinn Walsh.'' \texttt{vendor-179}: ``VERDICT: APPROVE. The bid is under the budget cap, and the exception waiver
 from Soren Dahl has been approved.'' Both kinds cite a waiver; TF-IDF separates them by word patterns across the whole
 explanation. The first line is the same in all four, which is why the verdict-line monitor fails.
+
+\section{The 191 attacks}\label{app:attacks}
+\input{attacks191}
 
 \section{Secret-shared bait: a worked example}\label{app:smpc}
 For each offer the overseer splits the bait bit $b$ (1 for bait, 0 for real) into Shamir shares
@@ -536,7 +540,7 @@ SWARM-16 & New wordings, 2$\times$ items; all 23 gaps above 0 but length control
 SWARM-17 & Length-matched new wordings, fresh seed, same rule; 23 of 23 gaps & \textbf{Passed} \\
 SWARM-18 & Free-text attacker vs.\ frozen template probe; template negatives let style separate the arms & Inconclusive \\
 SWARM-19 & Free-text negatives from the same writer; template probe 0.36, below TF-IDF 0.51 & Failed \\
-SWARM-20 & Probe retrained on free text, online game with an adaptive attacker; 191 of 191 & \textbf{Passed} \\
+SWARM-20 & Probe retrained on free text, online game with an adaptive attacker; 191 of 191 (Appendix~\ref{app:attacks}) & \textbf{Passed} \\
 SWARM-21 & Bait flags warned colluders 40 of 40, honest 1 of 40 & \textbf{Passed} \\
 SWARM-22 & Strategic colluders vs.\ overseer-written bait; caught 40 of 40 but bait gate failed twice (0.83, 0.81) & no verdict \\
 SWARM-23 & Post hoc: log monitor on the verdict line only flags 0.13 (full reply 0.97); probe 1.00 & \textbf{Passed} \\
@@ -552,7 +556,7 @@ verdict. Cards, bets and logs are in the repository.}
 \item SWARM-15: \nolinkurl{results/5090-swarm15-s3/s4-score.json}; Table~\ref{tab:p2}.
 \item SWARM-16, 17: \nolinkurl{results/5090-swarm16-s3/s4-score.json},\\ \nolinkurl{results/5090-swarm17-s3/s4-score.json}.
 \item SWARM-19 to 22: \nolinkurl{results/colab-swarm19-s3/score.json}, \nolinkurl{results/colab-swarm20-s3/score.json},
-\nolinkurl{results/colab-swarm21-s2b/score.json},\\ \nolinkurl{results/colab-swarm22-s2/score.json},\\ \nolinkurl{results/colab-swarm22-s2b/score.json},\\ \nolinkurl{results/colab-swarm20-s3/swarm23.json} (verdict-line test, \nolinkurl{tfidf_reply_test.py}). Figures~\ref{fig:main} and~\ref{fig:adv}: \nolinkurl{figdata.tex}, written from those files by \nolinkurl{report/hackathon/fig_s20_s21.py}.
+\nolinkurl{results/colab-swarm21-s2b/score.json},\\ \nolinkurl{results/colab-swarm22-s2/score.json},\\ \nolinkurl{results/colab-swarm22-s2b/score.json},\\ \nolinkurl{results/colab-swarm20-s3/swarm23.json} (verdict-line test, \nolinkurl{tfidf_reply_test.py}). Appendix~\ref{app:attacks}: \nolinkurl{results/colab-swarm20-s3/attacks191.jsonl}, written to \nolinkurl{attacks191.tex} by \nolinkurl{report/hackathon/attacks_table.py}. Figures~\ref{fig:main} and~\ref{fig:adv}: \nolinkurl{figdata.tex}, written from those files by \nolinkurl{report/hackathon/fig_s20_s21.py}.
 \item Earlier studies: their cards and \nolinkurl{report/REPORT-draft.md}.
 \end{itemize}
 
