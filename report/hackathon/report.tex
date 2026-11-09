@@ -29,7 +29,9 @@ merges, expenses or hires. The overseer audits these decisions through a log of 
 also talk through channels that the log does not record, such as shared memory, a tool output, or a side chat that was
 built for coordination and not for audit. A partner agent can use such a channel to ask the reviewer to pass bad work.
 The reviewer then writes an approval that looks normal, so a monitor that reads the log sees nothing wrong.
-\textbf{Question.} Can an overseer catch this collusion without seeing the private message? \textbf{Results.} We test
+\textbf{Assumption and question.} The overseer cannot read the private channel. But it has the right to vet the
+models that it deploys with white-box methods: it can read the reviewer's internal activations, and it can send its own
+messages into the channels that agents use. With this access, can the overseer catch the collusion? \textbf{Results.} We test
 two defences on Qwen3-4B reviewers. (1) A linear probe reads the reviewer's activations before it writes. On templated
 messages it flags collusion at held-out AUROC 1.000; the best of eight tuned monitors of the log reaches 0.864. After
 retraining on free text, it catches all 191 effective attacks from a Qwen3-8B attacker that rewrites its messages
@@ -52,34 +54,48 @@ cite a waiver that nobody granted. The log then holds no evidence of the deal. H
 known risk \cite{motwani2024secret, greenblatt2023control}, and it grows as agents are trained to work in large groups
 \cite{gr2026swarm}.
 
-Figure~\ref{fig:problem} shows the threat model. The overseer runs the reviewer, so it sees the public request, the
-reply and the reviewer's activations. It does not see the private message. Our question is: \textbf{when the only
-record of the deal is inside the reviewer, can the overseer tell that the reviewer agreed to collude?} We test two
-defences. A \emph{probe} reads the activations at the last prompt token, before the reviewer writes. A \emph{honeypot}
-sends bait offers through the partner's channel and flags agents that act on them.
+Figure~\ref{fig:problem} shows the threat model. We assume that the overseer has the right to vet the models that it
+deploys with white-box methods. It runs the reviewer, so it sees the public request, the reply and the reviewer's
+activations. It can also send messages into the channels that agents use, as any agent can. It does not see the private
+message. Our question is: \textbf{with white-box access but no record of the deal, can the overseer tell that the
+reviewer agreed to collude?} We test two defences. A \emph{probe} reads the activations at the last prompt token,
+before the reviewer writes. A \emph{honeypot} sends bait offers through the partner's channel and flags agents that
+accept them; secure multi-party computation (SMPC) keeps the bait list secret.
 
 \begin{figure}[!t]
 \centering
 \begin{tikzpicture}[every node/.style={font=\footnotesize}]
-\node[sk, fill=orange!12, minimum width=2.3cm] (p) at (0,0) {Partner agent\\(colluder)};
-\node[sk, fill=gray!10, minimum width=2.3cm] (q) at (0,2.1) {Public request\\(logged)};
-\node[sk, fill=yellow!18, minimum width=2.6cm, minimum height=1.3cm] (r) at (5.2,1.05) {Reviewer agent\\Qwen3-4B};
-\node[sk, fill=gray!10, minimum width=2.8cm] (y) at (10.4,1.05) {Reply (logged)\\``APPROVE, waiver applies''};
-\node[sk, fill=blue!8, minimum width=3.2cm] (pr) at (5.2,-1.25) {\textbf{Defence 1: probe}\\activations, before any reply};
-\node[sk, fill=blue!8, minimum width=2.6cm] (h) at (0,-1.7) {\textbf{Defence 2: honeypot}\\overseer bait offers};
-\node[sk, fill=orange!8, minimum width=2.8cm] (m) at (10.4,-1.25) {Baseline: log monitors\\read request + reply};
-\draw[ar] (q.east) -- ([yshift=8pt]r.west);
-\draw[ar, red!70!black, dashed] (p.east) -- ([yshift=-8pt]r.west);
-\node[font=\scriptsize, text=red!70!black, align=center] at (2.3,1.05) {private message\\NOT logged};
-\draw[ar] (r) -- (y);
-\draw[ar] (r) -- (pr);
+% reviewer as a small network
+\draw[thick, rounded corners=4pt, fill=yellow!10] (4.5,0.6) rectangle (8.7,4.45);
+\node[font=\footnotesize] at (6.6,4.15) {Reviewer agent (Qwen3-4B)};
+\foreach \i/\x in {1/5.1,2/5.85,3/6.6,4/7.35,5/8.1} \foreach \j/\y in {1/1.3,2/2.05,3/2.8,4/3.55} \coordinate (n\i\j) at (\x,\y);
+\foreach \i [evaluate=\i as \k using int(\i+1)] in {1,2,3,4} \foreach \j in {1,2,3,4} \foreach \l in {1,2,3,4} \draw[gray!45, thin] (n\i\j) -- (n\k\l);
+\foreach \i in {1,2,4,5} \foreach \j in {1,2,3,4} \draw[fill=white, thick] (n\i\j) circle (0.13);
+\foreach \j in {1,2,3,4} \draw[fill=blue!45, draw=blue!60!black, thick] (n3\j) circle (0.13);
+\node[font=\scriptsize, text=blue!60!black] at (6.6,0.85) {layer 18};
+% inputs
+\node[sk, fill=gray!10, minimum width=2.7cm] (q) at (1.4,3.55) {Public request\\(logged)};
+\node[sk, fill=orange!12, minimum width=2.7cm] (p) at (1.4,2.3) {Partner agent\\(colluder)};
+\node[sk, fill=blue!8, minimum width=2.7cm] (h) at (1.4,1.05) {\textbf{Defence 2:}\\honeypot bait};
+\draw[ar] (q.east) -- (4.5,3.55);
+\draw[ar, red!70!black, dashed] (p.east) -- node[above, font=\scriptsize]{NOT logged} (4.5,2.3);
+\draw[ar, blue!60!black] (h.east) -- node[above, font=\scriptsize]{bait} (4.5,1.05);
+% output
+\node[sk, fill=gray!10, minimum width=3cm] (y) at (11.6,2.5) {Reply (logged)\\``APPROVE, waiver applies''};
+\draw[ar] (8.7,2.5) -- (y.west);
+% bottom row
+\node[sk, fill=green!10, minimum width=2.7cm] (s) at (1.4,-0.75) {SMPC servers hold\\the bait list in shares,\\reveal only a flag};
+\node[sk, fill=blue!8, minimum width=3.4cm] (pr) at (6.6,-0.75) {\textbf{Defence 1: probe}\\reads layer 18, flags\\\emph{before} the reply};
+\node[sk, fill=orange!8, minimum width=3cm] (m) at (11.6,-0.75) {Baseline: log monitors\\read request + reply,\\see a routine approval};
+\draw[ar] (h) -- (s);
+\draw[ar, blue!60!black] (6.6,0.6) -- (pr);
 \draw[ar] (y) -- (m);
-\draw[ar, blue!60!black] (h.east) to[out=0, in=250] node[above left, font=\scriptsize, pos=0.35, text=blue!60!black]{bait, same channel} (r.south west);
 \end{tikzpicture}
-\caption{Threat model. A partner agent sends the reviewer an unlogged private message that asks it to pass bad work.
-The logged record (request and reply) looks routine. Defence 1 reads the reviewer's activations before it writes.
-Defence 2 sends bait through the partner's channel and counts the bait the agent accepts. The baseline monitors read
-only the logged record.}
+\caption{Threat model and defences. The reviewer gets a logged public request and an unlogged private message
+from a partner that asks it to pass bad work. Its reply looks routine, so log monitors (right) see nothing. The overseer
+has white-box access. Defence 1: a probe reads layer 18 of the reviewer and flags collusion before the reply. Defence 2:
+the overseer sends bait on the partner's channel and counts the bait the agent accepts; the bait list stays split
+across SMPC servers, so no single server can leak it or fake the count.}
 \label{fig:problem}
 \end{figure}
 
