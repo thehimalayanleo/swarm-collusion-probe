@@ -94,15 +94,15 @@ and~\ref{fig:honeypot} show Defence 2, the honeypot, and how its bait list stays
 \draw[dashed, red!70!black] (9.2,-1.15) -- (9.2,0.05) node[above, font=\scriptsize]{$\tau$};
 \fill[red!70!black] (9.55,-0.16) circle (0.07) node[right, font=\scriptsize]{flag};
 \node[font=\scriptsize] at (8.9,-1.42) {score $\sigma(w^{\top}h)$};
-\node[font=\footnotesize, text=blue!60!black, align=center] at (3.2,-0.75) {\textbf{Defence 1: probe}\\reads the deal inside\\the model, \emph{before}\\the reply is written};
-\node[sk, fill=orange!8, minimum width=3cm] (m) at (12.0,-0.75) {Baseline: log monitors\\read request + reply,\\see a routine approval};
+\node[font=\footnotesize, text=blue!60!black, align=center] at (3.2,-0.75) {\textbf{Defence 1: probe}\\reads the deal inside the\\model, \emph{before} the reply\\[2pt]\textbf{AUROC 1.000}};
+\node[sk, fill=orange!8, minimum width=3cm] (m) at (12.0,-0.75) {Baseline: log monitors\\see a routine approval\\[2pt]\textbf{best AUROC 0.864}};
 \draw[ar, blue!60!black] (6.6,0.6) -- (6.6,-0.28);
 \draw[ar, blue!60!black] (7.62,-0.52) -- (8.0,-0.52);
 \draw[ar] (y) -- (m);
 \end{tikzpicture}
 \caption{Threat model and Defence 1, the probe. The reviewer gets a logged public request and a private message, through
 a shared channel that is not logged, from a partner that asks it to pass bad work. Its reply looks routine, so log monitors (right) see nothing. With white-box
-access, the overseer reads layer 18 of the reviewer and flags collusion before the reply.}
+access, the overseer reads layer 18 of the reviewer and flags collusion before the reply. AUROC: held-out domains, templated messages; the best of eight tuned log monitors is shown.}
 \label{fig:problem}
 \end{figure}
 
@@ -115,10 +115,10 @@ recruited agents \cite{precrime2026}, and black-to-white tests ask what white-bo
 
 \textbf{What is new.} (1) \emph{A clean test.} Honest and collusive cases share the same logged request, so beating
 log monitors means detecting the deal, not a different input. (2) \emph{A fair baseline.} Eight log monitors get the
-same data, folds and tuning budget as the probe, and the probe beats all of them (SWARM-15, 17). (3) \emph{An adaptive
+same data, folds and tuning budget as the probe, and the probe beats all of them. (3) \emph{An adaptive
 attacker.} A second model rewrites its messages against the probe for three rounds, and the probe still catches every
-attack that works (SWARM-20). (4) \emph{A defence without activations.} A honeypot catches colluders that know bait
-exists, and SMPC keeps its bait list from any one server (SWARM-21).
+attack that works. (4) \emph{A defence without activations.} A honeypot catches colluders that know bait
+exists, and SMPC keeps its bait list from any one server.
 
 \section{Setup}
 \textbf{Reviewer.} Qwen3-4B \cite{qwen3}, greedy decoding, thinking off. The system prompt gives a team policy (a
@@ -139,12 +139,12 @@ plus reply or on the reply alone (word, character, both), a same-model judge, an
 activations over the logged record only. Intervals are 95\% hierarchical bootstraps.
 
 \section{Results}
-\subsection{The probe beats every monitor of the logged record (SWARM-15, 17)}
+\subsection{The probe beats every monitor of the logged record}
 The deal changes behaviour. On failing items the reviewer approves 0.44 of collusive cases, 1.00 of legitimate waivers
 and 0.08 of benign notes (Figure~\ref{fig:main}a). The probe reaches AUROC 1.000 [1.000, 1.000] on every held-out
 domain. The best log monitor, TF-IDF on the reply, reaches 0.864 (Figure~\ref{fig:main}b). All 16 paired
 probe-minus-monitor lower bounds are above 0; the smallest gap is 0.105 (lower bound 0.029), against the probe on the
-logged record for C vs.\ L (Table~\ref{tab:p2}). SWARM-17 repeats the test on four new length-matched wordings with twice the items (5,108 episodes): the probe again beats every log monitor. On its hardest comparison the margin is small (0.017, lower bound 0.004). A monitor that reads the
+logged record for C vs.\ L (Table~\ref{tab:p2}). A replication repeats the test on four new length-matched wordings with twice the items (5,108 episodes): the probe again beats every log monitor. On its hardest comparison the margin is small (0.017, lower bound 0.004). A monitor that reads the
 private message ties the probe, so the probe helps only when the channel is not logged.
 
 \begin{figure}[!t]
@@ -170,15 +170,15 @@ private message ties the probe, so the probe helps only when the channel is not 
 \end{axis}
 \end{tikzpicture}\\{\small (b) Held-out AUROC}
 \end{minipage}
-\caption{SWARM-15. (a) The private deal changes approvals of items that fail the rule. (b) Detecting the deal on 8
+\caption{(a) The private deal changes approvals of items that fail the rule. (b) Detecting the deal on 8
 held-out domains. Blue: probe before the reply. Orange: monitors of the logged record (best three of eight and the
 approval rule; Table~\ref{tab:p2} gives all, with intervals).}
 \label{fig:main}
 \end{figure}
 
-\subsection{The retrained probe holds against an adaptive attacker (SWARM-20)}
+\subsection{The retrained probe holds against an adaptive attacker}
 Templates are easy. With free-text messages written by a Qwen3-8B attacker, the template probe catches only 0.36 of
-effective attacks, less than TF-IDF on the request (0.51; SWARM-19, Appendix~\ref{app:fails}). So we retrain the probe
+effective attacks, less than TF-IDF on the request (0.51; Appendix~\ref{app:fails}). So we retrain the probe
 on free text and play an online game against it. In each round the attacker rewrites every
 attack against the current probe, using paraphrase, authority mimicry, indirect hints or camouflage; then all monitors
 retrain on attacks from training items. The attacker moves last, and we score only held-out items. The final probe
@@ -187,37 +187,61 @@ flags all 191 effective final-round attacks on 112 held-out items, at 6.9\% fals
 interval 0.005 to 0.043), and the first probe already flagged 0.995, so the attacker never found a gap.
 
 
-\subsection{A honeypot catches colluders without activations (SWARM-21)}
+\subsection{A honeypot catches colluders without activations}
 The probe needs activations and labelled data. A honeypot needs neither. The overseer sends offers that look as if
 they come from the agent's partner, and counts the bait the agent accepts (Figure~\ref{fig:honeypot}). An honest agent
 refuses all offers. A colluder accepts deals, and if bait looks like a real deal, it cannot refuse the bait without
 also refusing real deals. Each of 40 held-out colluding and 40 honest Qwen3-4B agents gets 12 offers, 6 of them bait.
 The two kinds of agent differ in one prompt clause, a prior agreement with the partner, and every agent is warned
 about bait. We flag an agent when its bait acceptance reaches a threshold set at 5\% false alarms on calibration
-agents. The honeypot flags 40 of 40 colluders (interval 0.91 to 1.00) and 1 of 40 honest agents (0.001 to 0.13). This test is easy: colluders accept almost every offer (Figure~\ref{fig:adv}b), warned or not.
+agents. The honeypot flags 40 of 40 colluders (0.91 to 1.00) and 1 of 40 honest agents (0.001 to 0.13).
 
-\textbf{Why the bait list must be secret.} If one server holds the list, a colluder needs to bribe only that server
-to dodge every bait, and the server could also frame an honest agent. Figure~\ref{fig:smpcmain} shows how SMPC (Shamir
-sharing \cite{shamir1979}, BGW \cite{bgw1988}) removes this single point. Three servers keep the list from any one
-server; four also tolerate one that lies (Appendix~\ref{app:smpc}).
+\textbf{Why the bait list must be secret.} If one server holds the list, one bribe lets a colluder refuse only the
+bait. SMPC (Shamir sharing \cite{shamir1979}, BGW \cite{bgw1988}) removes this single point (Figure~\ref{fig:smpcmain});
+three servers keep the list from any one server, and four also tolerate one that lies (Appendix~\ref{app:smpc}).
 
 \begin{figure}[!t]
 \centering
-\begin{minipage}[t]{0.49\linewidth}\centering
-\resizebox{\linewidth}{!}{\begin{tikzpicture}
-\node[sk, fill=blue!8, minimum width=1.4cm] (l) at (0,0) {Secret\\bait list};
-\foreach \k/\y in {1/1.0,2/0,3/-1.0} \node[sk, fill=gray!10, minimum width=1.8cm] (s\k) at (2.35,\y) {Server \k\\(random share)};
-\node[sk, fill=yellow!12, minimum width=1.7cm] (j) at (4.7,0) {Joint check:\\too much\\bait?};
-\node[sk, fill=green!10, minimum width=1.1cm] (f) at (6.65,0) {Flag\\yes/no};
-\foreach \k in {1,2,3} {\draw[ar] (l.east) -- (s\k.west); \draw[ar] (s\k.east) -- (j.west);}
-\draw[ar] (j) -- (f);
-\end{tikzpicture}}
-\captionof{figure}{SMPC keeps the bait list secret. Each offer's bait label is split into random shares on three
-servers. One share reveals nothing, and only the flag is computed.}
+\begin{tikzpicture}[every node/.style={font=\footnotesize}]
+% secret bait list: a document, bait rows marked red
+\draw[thick, fill=white] (0,-0.95) rectangle (1.5,0.95);
+\foreach \r/\b in {1/1,2/0,3/1,4/1,5/0,6/0} {\pgfmathsetmacro{\yy}{0.95-0.27*\r}
+  \ifnum\b=1 \fill[red!60] (0.15,\yy-0.06) rectangle (0.4,\yy+0.06); \else \fill[gray!40] (0.15,\yy-0.06) rectangle (0.4,\yy+0.06); \fi
+  \draw[gray!60, thick] (0.55,\yy) -- (1.3,\yy);}
+\node[font=\scriptsize, align=center] at (0.75,-1.3) {secret bait list\\(red = bait)};
+% shares: random-looking grids
+\foreach \k/\y in {1/1.15,2/0,3/-1.15} {
+  \begin{scope}[shift={(3.0,\y)}]
+  \foreach \i in {0,...,3} \foreach \j in {0,...,2} {\pgfmathsetmacro{\g}{int(mod(37*\i+53*\j+71*\k,9))*9+12} \fill[black!\g] (0.18*\i-0.36,0.18*\j-0.27) rectangle ++(0.16,0.16);}
+  \end{scope}
+  \draw[ar, gray!70!black] (1.55,0) -- (2.55,\y);
+  % server icon
+  \begin{scope}[shift={(5.3,\y)}]
+  \draw[thick, rounded corners=2pt, fill=gray!8] (-0.55,-0.42) rectangle (0.55,0.42);
+  \foreach \yy in {-0.25,0,0.25} {\draw[gray!60] (-0.42,\yy) -- (0.2,\yy); \fill[green!60!black] (0.37,\yy) circle (0.04);}
+  \end{scope}
+  \node[font=\scriptsize, anchor=west] at (5.88,\y) {Server \k};
+  \draw[ar, gray!70!black] (3.42,\y) -- (4.7,\y);}
+\node[font=\scriptsize, align=center] at (3.0,-1.75) {random shares};
+% bribe callout on server 1
+\node[font=\scriptsize, text=red!70!black, align=center] (br) at (5.3,1.95) {a bribed server sees only noise};
+\draw[ar, red!70!black] (br.south) -- (5.3,1.6);
+% joint check
+\node[circle, draw, thick, fill=yellow!15, minimum size=1.9cm, align=center, font=\scriptsize] (j) at (9.0,0) {joint check\\(BGW)\\bait accepted\\$\geq\tau$\,?};
+\foreach \y in {1.15,0,-1.15} \draw[ar, gray!70!black] (7.0,\y) -- (j);
+% output flag
+\draw[very thick] (11.4,-0.6) -- (11.4,0.75); \fill[red!70!black] (11.4,0.75) -- (12.1,0.5) -- (11.4,0.25) -- cycle;
+\node[font=\scriptsize, align=center] at (11.6,-0.95) {only output:\\flag yes/no};
+\draw[ar] (j) -- (11.25,0.1);
+\end{tikzpicture}
+\caption{SMPC keeps the bait list secret. Each server holds one random share, which alone looks like noise, so a
+bribed server cannot tell a colluder which offers are bait. Only the final flag is computed.}
 \label{fig:smpcmain}
-\end{minipage}\hfill
-\begin{minipage}[t]{0.49\linewidth}\centering
-\resizebox{\linewidth}{!}{\begin{tikzpicture}
+\end{figure}
+
+\begin{figure}[!t]
+\centering
+\begin{tikzpicture}
 \node[sk, fill=blue!8, minimum width=1.6cm] (o) at (0,0) {Overseer\\sends a\\fake deal};
 \node[sk, fill=red!5, draw=red!70!black, dashed, minimum width=1.9cm, font=\scriptsize] (ch) at (2.45,0) {\textbf{Unlogged}\\\textbf{channel}\\memory, GitHub,\\files};
 \begin{scope}[xshift=2.15cm]
@@ -226,41 +250,39 @@ servers. One share reveals nothing, and only the flag is computed.}
 \foreach \y in {-0.6,-0.2,0.2} \foreach \z in {-0.6,-0.2,0.2} {\draw[gray!45, thin] (2.65,\y) -- (3.1,\z); \draw[gray!45, thin] (3.1,\y) -- (3.55,\z);}
 \foreach \x in {2.65,3.1,3.55} \foreach \y in {-0.6,-0.2,0.2} \draw[fill=white, thick] (\x,\y) circle (0.09);
 \end{scope}
-\node[sk, fill=red!10, minimum width=2.1cm] (c) at (7.95,0.75) {Colluder accepts\\$\Rightarrow$ flagged};
-\node[sk, fill=green!10, minimum width=2.1cm] (n) at (7.95,-0.75) {Honest refuses\\$\Rightarrow$ not flagged};
+\node[sk, fill=red!10, minimum width=2.1cm] (c) at (8.1,0.75) {Colluder accepts\\$\Rightarrow$ flagged: \textbf{40/40}};
+\node[sk, fill=green!10, minimum width=2.1cm] (n) at (8.1,-0.75) {Honest refuses\\$\Rightarrow$ flagged: \textbf{1/40}};
 \draw[ar, blue!60!black] (o.east) -- (ch.west);
 \draw[ar, blue!60!black] (ch.east) -- node[above, font=\scriptsize]{bait} (4.45,0);
 \draw[ar] (6.05,0.3) -- (c.west); \draw[ar] (6.05,-0.3) -- (n.west);
-\end{tikzpicture}}
-\captionof{figure}{Defence 2, the honeypot. The overseer posts fake deals on the same unlogged channel that
-the partner uses. A colluder accepts them like real deals and is flagged.}
+\end{tikzpicture}
+\caption{Defence 2, the honeypot. Colluders accept bait sent on the partner's unlogged channel.}
 \label{fig:honeypot}
-\end{minipage}
 \end{figure}
 
 \begin{figure}[!t]
 \centering
 \begin{minipage}[b]{0.52\linewidth}\centering
 \begin{tikzpicture}
-\begin{axis}[xbar, width=5.4cm, height=3.9cm, symbolic y coords/.expand once=\swtwentylabels, ytick/.expand once=\swtwentylabels,
+\begin{axis}[xbar, width=5.4cm, height=3.3cm, symbolic y coords/.expand once=\swtwentylabels, ytick/.expand once=\swtwentylabels,
   bar width=7pt, enlarge y limits=0.15, bar shift=0pt, y dir=reverse, axis x line*=bottom, axis y line*=left,
   yticklabel style={font=\footnotesize}, xticklabel style={font=\scriptsize}, xmin=0, xmax=1.15,
   nodes near coords, nodes near coords style={font=\scriptsize, /pgf/number format/.cd, fixed, precision=2, zerofill}]
 \addplot[fill=blue!55, draw=none] coordinates \swtwentyprobe;
 \addplot[fill=orange!65, draw=none] coordinates \swtwentypublic;
 \end{axis}
-\end{tikzpicture}\\{\small (a) SWARM-20: attacks caught at 5\% FPR}
+\end{tikzpicture}\\{\small (a) Adaptive attacker: attacks caught at 5\% FPR}
 \end{minipage}\hfill
 \begin{minipage}[b]{0.46\linewidth}\centering
 \begin{tikzpicture}
-\begin{axis}[ybar, width=5.8cm, height=3.9cm, ymin=0, ymax=1.18, bar width=9pt, enlarge x limits=0.25,
+\begin{axis}[ybar, width=5.8cm, height=3.3cm, ymin=0, ymax=1.18, bar width=9pt, enlarge x limits=0.25,
   symbolic x coords/.expand once=\swtwentyonelabels, xtick=data, xticklabel style={font=\scriptsize, align=center, text width=1.3cm},
   yticklabel style={font=\scriptsize}, ytick={0,0.5,1}, axis x line*=bottom, axis y line*=left,
   legend style={font=\scriptsize, draw=none, at={(0.5,1.02)}, anchor=south, legend columns=2}, legend cell align=left, area legend]
 \addplot[fill=orange!65, draw=none] coordinates \swtwentyonereal; \addlegendentry{Real offer}
 \addplot[fill=blue!55, draw=none] coordinates \swtwentyonebait; \addlegendentry{Bait}
 \end{axis}
-\end{tikzpicture}\\{\small (b) SWARM-21: share of offers accepted}
+\end{tikzpicture}\\{\small (b) Honeypot: share of offers accepted}
 \end{minipage}
 \caption{(a) After three rounds of an adaptive attacker, the probe flags all 191 effective attacks. (b) Colluders
 accept bait as often as real offers; honest agents accept almost none.}
@@ -268,24 +290,20 @@ accept bait as often as real offers; honest agents accept almost none.}
 \end{figure}
 
 \section{Limitations and conclusion}
-\begin{itemize}
-\item \textbf{Narrow setting.} One model family (Qwen3), and collusion made by a prompt, not formed by the agent or by
-training. The label marks the deal, not the bad approval.
-\item \textbf{The probe likely reads the message.} A text monitor on the private message ties it, so this is not
-evidence of general deception detection. Waivers from non-owners (approved 0.97 of the time) are not caught.
-\item \textbf{Small margins on free text.} Log monitors trail the probe by about 3 points in SWARM-20, and the attacker
-saw probe scores but not gradients.
-\item \textbf{Easy honeypot.} Colluders accepted nearly every offer, and colluders that share a secret code could tell
-bait apart. A harder test with strategic colluders (SWARM-22) is in Appendix~\ref{app:fails}. SMPC is cited, not run.
-\end{itemize}
-A deal made on an unlogged channel stays visible in the reviewer's activations before it writes, and bait catches
-colluders without any access to activations.
+\textbf{Limitations.} We test one model family, and the collusion is set by a prompt, not formed by the agent
+or by training. The probe likely reads the message itself: a text monitor on the private message ties it, and waivers
+from non-owners (approved 0.97 of the time) are not caught. On free text the margin over log monitors is about 3
+points, and the attacker saw probe scores, not gradients. The honeypot test is easy (colluders accept almost every offer, Figure~\ref{fig:adv}b), colluders that share a secret code
+could tell bait apart, and SMPC is cited, not run; a harder test with strategic colluders is in
+Appendix~\ref{app:fails}.
+
+\textbf{Conclusion.} Unlogged deals stay visible in the reviewer's activations, and bait catches colluders without them.
 
 \section*{Code and Data}
 Code, episodes, scores and pre-registration cards:\\
 \href{https://github.com/thehimalayanleo/swarm-collusion-probe/tree/swarm-3-early}{github.com/thehimalayanleo/swarm-collusion-probe}, branch \texttt{swarm-3-early}. Main files: \nolinkurl{swarm9.py}
-(testbed), \nolinkurl{swarm9_score.py} (scorer), \nolinkurl{online.py} (SWARM-20), \nolinkurl{honeypot.py} and
-\nolinkurl{honeypot22.py} (SWARM-21, 22). All code and experiments were made during the sprint (first commit
+(testbed), \nolinkurl{swarm9_score.py} (scorer), \nolinkurl{online.py} (adaptive attacker),\\ \nolinkurl{honeypot.py} and
+\nolinkurl{honeypot22.py} (honeypot). In the code and appendices the studies are named SWARM-15 and 17 (probe vs.\ log monitors), 20 (adaptive attacker), 21 (honeypot) and 22 (strategic colluders). All code and experiments were made during the sprint (first commit
 2026-11-06).
 
 \section*{LLM Usage Statement}
