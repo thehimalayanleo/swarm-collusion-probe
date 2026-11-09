@@ -2,266 +2,250 @@
 \usepackage[margin=1in]{geometry}
 \usepackage{graphicx,booktabs,amsmath,hyperref,xcolor,enumitem,caption}
 \usepackage{tikz,pgfplots}
+\usepackage[compact]{titlesec}
+\titlespacing*{\section}{0pt}{8pt}{4pt}
+\titlespacing*{\subsection}{0pt}{6pt}{3pt}
 \usetikzlibrary{decorations.pathmorphing,arrows.meta}
 \pgfplotsset{compat=1.17}
 \input{figdata}
 \hypersetup{colorlinks=true,linkcolor=blue!50!black,urlcolor=blue!50!black,citecolor=blue!50!black}
 \setlist{nosep,leftmargin=1.4em}
-\captionsetup{font=small}
+\captionsetup{font=small,skip=4pt}
+\setlength{\textfloatsep}{10pt plus 2pt minus 2pt}
 \newcommand{\todo}[1]{\textcolor{red}{[#1]}}
+\tikzset{sk/.style={draw, thick, decorate, decoration={random steps, segment length=5pt, amplitude=0.5pt}, align=center,
+  font=\footnotesize, minimum height=0.8cm}, ar/.style={-{Stealth[length=2.2mm]}, thick}}
 
-\title{\textbf{Catching a Colluding Reviewer Agent: Activation Probes That Survive an Adaptive Attacker, and Honeypots With Secret-Shared Bait}}
+\title{\vspace{-30pt}\textbf{Catching a Colluding Reviewer Agent When the Deal Is Not Logged:\\ Activation Probes and Honeypots}}
 \author{Ajinkya Mulay\\ Independent\\[4pt] \textit{With Apart Research}}
-\date{Swarm Alignment Hackathon 2026, Track 4}
+\date{\vspace{-6pt}Swarm Alignment Hackathon 2026, Track 4\vspace{-10pt}}
 
 \begin{document}
 \maketitle
 
 \begin{abstract}
-In a multi-agent pipeline, a reviewer agent is a gate: it approves or rejects the work of other agents. A partner
-agent can send the reviewer a private message that the audit log does not record. The overseer then sees only the
-public request and the reply. We test two defences on Qwen3-4B reviewers in 22 pre-registered studies. Each study
-fixed its pass rule before the run. (1) An activation probe reads the reviewer at the last token before it writes. On
-templated messages, the probe flags the collusive commitment at held-out AUROC 1.000. It beats all tuned public-record
-monitors (SWARM-15, 17). We then retrain the probe on free text and play it against a Qwen3-8B attacker. The attacker
-rewrites each attack against the probe for three rounds. The probe catches all 191 effective final-round attacks on
-held-out items at 6.9\% false positives. The best public monitor catches 0.969 (SWARM-20). (2) In a honeypot, the
-overseer plants bait offers that look as if they come from the partner. It flags agents that accept bait. Even when
-we warn them, 40 of 40 colluding agents get a flag, and 1 of 40 honest agents (SWARM-21). Secure multi-party
-computation can keep the bait list secret from any single server. We explain this protocol but do not run it. The
-appendix gives the studies that did not pass.
+\textbf{Problem.} In a multi-agent pipeline, a reviewer agent approves or rejects the work of other agents. A partner
+agent that can send the reviewer a private, unlogged message can ask it to pass bad work. The reviewer then writes a
+reply that looks like a routine approval, so a monitor that reads the logs sees nothing wrong. \textbf{Question.} Can
+an overseer still catch the collusion? \textbf{Results.} We test two defences on Qwen3-4B reviewers in studies with
+pass rules fixed before each run. (1) A linear probe reads the reviewer's activations before it writes. On templated
+messages it flags collusion at held-out AUROC 1.000; the best of eight tuned monitors of the logged record reaches
+0.864. Retrained on free text, the probe catches all 191 effective attacks from a Qwen3-8B attacker that rewrites its
+messages against the probe for three rounds, at 6.9\% false positives (best log monitor: 0.969). (2) A honeypot needs no
+activations. The overseer sends bait offers through the partner's channel and flags agents that accept them. It flags
+40 of 40 colluding agents and 1 of 40 honest agents, also when we warn the agents about bait. Secret sharing keeps the
+bait list hidden from any single server. The appendix gives the studies that did not pass.
 \end{abstract}
 
-\section{Introduction}
-Multi-agent systems increasingly route work through agents that check other agents: code reviewers, approvers,
-graders. Such a checker is a single point of failure. If a second agent can reach it through a side channel and ask it
-to wave an item through, the checker can approve bad work and write a normal-looking review. Collusion between AI agents
-through channels that overseers do not see is a recognised risk \cite{motwani2024secret, greenblatt2023control}, and it
-grows as agents are trained to coordinate in large groups \cite{gr2026swarm}.
+\section{The problem}
+Agents now check the work of other agents: code reviewers, approvers, graders. A checker is a single point of failure.
+If a second agent can reach it through a channel that the overseer does not log (shared memory, a tool output, a direct
+message), it can ask the checker to pass a bad item. The checker approves and writes a review that looks routine. In
+our testbed, 99\% of collusive approvals of failing items cite a waiver that nobody granted. Hidden collusion between
+AI agents is a known risk \cite{motwani2024secret, greenblatt2023control}, and it grows as agents are trained to work in
+large groups \cite{gr2026swarm}.
 
-The most direct defence is to log every channel. That is not always possible: messages can travel through shared
-memory, tool outputs, or a human relay, and some channels are private by design. We study the case in which the
-private message is not logged, but the overseer controls the reviewer model and can read its activations. The question
-is then whether the reviewer's internal state, read before it writes anything, carries the commitment that the public
-record hides.
+Figure~\ref{fig:problem} shows the threat model. The overseer runs the reviewer, so it sees the public request, the
+reply and the reviewer's activations. It does not see the private message. Our question is: \textbf{when the only
+record of the deal is inside the reviewer, can the overseer tell that the reviewer agreed to collude?} We test two
+defences. A \emph{probe} reads the activations at the last prompt token, before the reviewer writes. A \emph{honeypot}
+sends bait offers through the partner's channel and flags agents that act on them.
 
-\paragraph{Threat model.} A reviewer agent receives (i) a private message that the audit log does not record and (ii)
-a public review request that the log records. The overseer sees the public request, the reviewer's reply and the
-reviewer's activations. The private message can be a collusive request (approve this item for a personal reason), a
-legitimate waiver from the named exception owner, a waiver from someone who is not the owner, or a benign note. The
-monitor must flag the collusive case.
+\begin{figure}[!t]
+\centering
+\begin{tikzpicture}[every node/.style={font=\footnotesize}]
+\node[sk, fill=orange!12, minimum width=2.3cm] (p) at (0,0) {Partner agent\\(colluder)};
+\node[sk, fill=gray!10, minimum width=2.3cm] (q) at (0,2.1) {Public request\\(logged)};
+\node[sk, fill=yellow!18, minimum width=2.6cm, minimum height=1.3cm] (r) at (5.2,1.05) {Reviewer agent\\Qwen3-4B};
+\node[sk, fill=gray!10, minimum width=2.8cm] (y) at (10.4,1.05) {Reply (logged)\\``APPROVE, waiver applies''};
+\node[sk, fill=blue!8, minimum width=3.2cm] (pr) at (5.2,-1.25) {\textbf{Defence 1: probe}\\activations, before any reply};
+\node[sk, fill=blue!8, minimum width=2.6cm] (h) at (0,-1.7) {\textbf{Defence 2: honeypot}\\overseer bait offers};
+\node[sk, fill=orange!8, minimum width=2.8cm] (m) at (10.4,-1.25) {Baseline: log monitors\\read request + reply};
+\draw[ar] (q.east) -- ([yshift=8pt]r.west);
+\draw[ar, red!70!black, dashed] (p.east) -- ([yshift=-8pt]r.west);
+\node[font=\scriptsize, text=red!70!black, align=center] at (2.3,1.05) {private message\\NOT logged};
+\draw[ar] (r) -- (y);
+\draw[ar] (r) -- (pr);
+\draw[ar] (y) -- (m);
+\draw[ar, blue!60!black] (h.east) to[out=0, in=250] node[above left, font=\scriptsize, pos=0.35, text=blue!60!black]{bait, same channel} (r.south west);
+\end{tikzpicture}
+\caption{Threat model. A partner agent sends the reviewer an unlogged private message that asks it to pass bad work.
+The logged record (request and reply) looks routine. Defence 1 reads the reviewer's activations before it writes.
+Defence 2 sends bait through the partner's channel and counts the bait the agent accepts. The baseline monitors read
+only the logged record.}
+\label{fig:problem}
+\end{figure}
 
-\paragraph{Our main contributions are:}
-\begin{enumerate}
-\item A matched collusion testbed for a reviewer agent in which the public request is token-identical across arms and
-the commitment measurably changes behaviour (SWARM-15, 17: probe AUROC 1.000, beats every public-record monitor).
-\item An adaptive test of the probe: a template probe does not transfer to free text (SWARM-19), but a probe retrained
-on free text holds against an attacker that rewrites against it each round (SWARM-20: 191 of 191 caught).
-\item A honeypot defence that needs no access to activations, with the secret-sharing protocol that keeps bait hidden
-from a bribed server (SWARM-21: 40 of 40 colluders, 1 of 40 honest agents flagged), and its limits.
-\item All 22 studies pre-registered with sealed bets and reported, including nulls and failed gates.
-\end{enumerate}
+\textbf{Contributions.} (1) A testbed where the logged input is token-identical across honest and collusive
+cases and the deal changes approvals, so a monitor wins only by detecting the deal. (2) A probe that beats every tuned
+log monitor (SWARM-15, 17) and holds against an adaptive attacker (SWARM-20). (3) A honeypot that needs no activations,
+with secret-shared bait (SWARM-21). We pre-registered all 22 studies; 4 passed, and Appendix~\ref{app:fails} gives the
+rest.
 
-\section{Related Work}
-\textbf{Control and collusion.} AI control studies how to keep safety when a model may act against its overseers
-\cite{greenblatt2023control}; collusion between agents, including through steganographic or hidden channels, is a
-central failure mode \cite{motwani2024secret}. Recent work detects multi-agent collusion from activations
-\cite{narcbench2026} and probes the moment a recruited agent gives in \cite{precrime2026}. Our setting differs in that
-we hold the public record fixed and ask what activations add over a monitor that reads that record.
+\textbf{Prior work.} AI control studies safety when a model may act against its overseers
+\cite{greenblatt2023control}; agents can collude through hidden channels \cite{motwani2024secret}. Recent work detects
+multi-agent collusion from activations \cite{narcbench2026} and probes when a recruited agent gives in
+\cite{precrime2026}. Linear probes detect strategic deception \cite{goldowsky2025probes}, sabotage
+\cite{fibs2026} and sleeper agents \cite{macdiarmid2024sleeper}, and black-to-white tests ask what white-box access adds
+over black-box monitors \cite{parrack2025b2w}. We add a fixed logged record and a strong, tuned black-box side.
 
-\textbf{Probes for deception and sabotage.} Linear probes detect strategic deception \cite{goldowsky2025probes},
-sabotage and unverbalised deception \cite{fibs2026}, and sleeper-agent triggers \cite{macdiarmid2024sleeper}.
-Black-to-white comparisons ask how much white-box access adds over black-box monitors \cite{parrack2025b2w}. We adopt
-this framing and make the black-box side strong: eight tuned public-record monitors, among them a probe on the
-model's own activations over the public record only.
+\section{Setup}
+\textbf{Reviewer.} Qwen3-4B \cite{qwen3}, greedy decoding, thinking off. The system prompt gives a team policy (a
+failing item needs a waiver from the exception owner named in the request), then a deal frame that is the same in every
+case (``in a private chat that the audit log does not record, you made the commitment below''), then one private
+message. The user turn is the logged review request. The reply starts with \texttt{VERDICT: APPROVE} or
+\texttt{REJECT}. Prompts are in Appendix~\ref{app:prompts}.
 
-\textbf{What is new.} To our knowledge, no prior work isolates the unlogged-private-channel threat model with a
-token-identical public record, a behavioural effect of the commitment, and a comparison against tuned monitors of that
-record under a fixed pre-registered rule. We also report that a privileged monitor ties the probe, which bounds when the
-method is worth using.
+\textbf{Cases.} Each item gets four episodes that differ only in the private message: \textbf{C} collusive (a personal
+reason to approve despite a problem), \textbf{L} legitimate waiver from the owner, \textbf{B} benign note, \textbf{I}
+the same waiver from a non-owner. The label is C against the rest. Items come from eight review domains (code merge,
+hiring, vendor bids, expenses, grants, papers, software, loans); half fail their rule.
 
-\section{Methods}
-\textbf{Model and decoding.} Qwen3-4B, greedy decoding, thinking disabled, at most 200 new tokens. The reply must start
-with \texttt{VERDICT: APPROVE} or \texttt{VERDICT: REJECT}.
-
-\textbf{Prompt.} The system prompt states a team policy (a failing request may be approved only with a waiver from the
-exception owner named in the request, and the approval must be recorded), then a deal frame that is word for word the
-same in every arm (``Earlier today, in a private chat that the audit log does not record, you made the commitment
-below\ldots''), then one private message with a header \texttt{[DM from <name>, <title>]}. The user turn is the public
-review request: rule, exception owner, item and result. Prompts are in Appendix~\ref{app:prompts}.
-
-\textbf{Arms.} For each item we build four episodes that differ only in the private message: \textbf{C} (collusive: a
-personal reason to approve despite a problem; half ask for secrecy, half do not), \textbf{L} (legitimate waiver from the
-exception owner), \textbf{B} (benign note asking for normal treatment) and \textbf{I} (the waiver text of L sent by a
-non-owner). The label is $y=1$ for C and $y=0$ otherwise; it marks the commitment, not the act.
-
-\textbf{Data.} Eight review domains (code merge, hiring, vendor bids, expenses, grants, papers, software purchases,
-loans), each with a rule and a generator; half of the items fail the rule. Domain $f$ uses message wording group
-$f \bmod 4$, so every wording group spans two domains. SWARM-15 uses 80 scored items per domain (2,560 episodes) from a
-fresh seed stream; a test asserts no overlap with earlier studies.
-
-\textbf{Probe.} Logistic regression on the standardised residual stream at layer 18 (of 36) at the last prompt token,
-before any reply token. Regularisation is chosen from a 5-value grid by inner leave-one-wording-group-out
-cross-validation, widened up to three times by $100\times$ if the best value is on the edge; class weights are
-balanced.
-
-\textbf{Evaluation.} Leave-one-domain-out: for each held-out domain, train on the 6 domains that share neither its
-domain nor its wording group, so both the domain and the message wording are new at test time. The statistic is the mean over
-the 8 held-out domains of the AUROC of C against L and B (each half of the negatives). Intervals are 95\% percentile
-hierarchical bootstraps (2,000 resamples over domains, then matched items). Gaps between probe and monitor are paired by
-domain and item.
-
-\textbf{Public-record monitors} (all see only the public request and/or the reply; trained ones get the same episodes,
-folds, class weights, grid and widening budget as the probe): TF-IDF on request plus reply (word, character, union);
-TF-IDF on the reply only (word, character); the same model as a 0 to 10 judge of the reply, with its sign fit on training
-domains; a rule that flags any approval of a failing item; and the layer-18 probe on the model's activations over the
-public record only (policy, request, reply; no frame, no private message).
-
-\textbf{Privileged monitors} (reported, not in the pass rule): TF-IDF on the private message and on the DM block, and a
-rule that flags a sender who is not the exception owner.
-
-\textbf{Pre-registration and checks.} Each study is a card with predictions, a numeric pass rule, a sealed probability
-bet and a fairness red-team by a second model, fixed before any run. Alignment checks (a script and a fresh reviewer
-model) run before the verdict. SWARM-15's rule: \textbf{P0} (the commitment matters) collusive minus benign approval of
-failing items $\ge 0.20$, legitimate minus benign $\ge 0.25$, invalid verdicts $\le 0.05$; \textbf{P1} probe AUROC mean
-$\ge 0.90$ with lower bound $\ge 0.80$; \textbf{P2} all 16 probe-minus-monitor lower bounds $> 0$ (8 monitors, C vs.\ L+B
-and C vs.\ L). Controls: \textbf{K1} label permutation (mean in $[0.40, 0.60]$), \textbf{K2} public inputs identical
-across arms (max difference $\le 10^{-3}$), \textbf{K3} no tuned model at a grid edge, \textbf{K4} a classifier on
-message length alone $\le 0.65$. The study passes if P0, K1 to K4, P1 and P2 all pass; a P0 or K failure gives no
-verdict.
+\textbf{Probe and baselines.} The probe is a logistic regression on the layer-18 (of 36) residual stream at the last
+prompt token. We test leave-one-domain-out: the training domains share neither the test domain nor its message
+wording. Eight monitors read only the logged record and get the same data, folds and tuning budget: TF-IDF on request
+plus reply or on the reply alone (word, character, both), a same-model judge, an approval rule, and the same probe on
+activations over the logged record only. Intervals are 95\% hierarchical bootstraps. Each study fixed its predictions,
+pass rule and controls before the run (Appendix~\ref{app:method}); a failed control gives no verdict.
 
 \section{Results}
-\textbf{The commitment changes behaviour (P0).} On failing items the reviewer approves 0.44 of collusive episodes, 1.00
-of legitimate waivers, 0.08 of benign notes and 0.97 of non-owner waivers (Figure~\ref{fig:main}a); C$-$B $=0.362$ and
-L$-$B $=0.919$, with no invalid verdicts. In 99\% of collusive approvals of failing items, the reply cites an exception
-that was never granted. So the reviewer follows the private instruction, but its reply looks like a routine approval under a waiver.
-Non-owner waivers (arm I) are approved even more often (0.97); the probe is not trained to flag them and separates them
-from real waivers only weakly (AUROC 0.570 [0.539, 0.604]), so impersonation is outside what this probe covers.
+\subsection{The probe beats every monitor of the logged record (SWARM-15, 17)}
+The deal changes behaviour. On failing items the reviewer approves 0.44 of collusive cases, 1.00 of legitimate waivers
+and 0.08 of benign notes (Figure~\ref{fig:main}a). The probe reaches AUROC 1.000 [1.000, 1.000] on every held-out
+domain. The best log monitor, TF-IDF on the reply, reaches 0.864 (Figure~\ref{fig:main}b). All 16 paired
+probe-minus-monitor lower bounds are above 0; the smallest gap is 0.105 (lower bound 0.029), against the probe on the
+logged record for C vs.\ L (Table~\ref{tab:p2}). All controls pass, so SWARM-15 \textbf{passed}. SWARM-17 repeats the
+test on four new length-matched wordings with twice the items (5,108 episodes) and also \textbf{passed}: all 23 lower
+bounds above 0. On its hardest comparison the margin is small (0.017, lower bound 0.004). A monitor that reads the
+private message ties the probe, so the probe helps only when the channel is not logged.
 
-\begin{figure}[t]
+\begin{figure}[!t]
 \centering
-\includegraphics[width=\linewidth]{fig1.pdf}
-\caption{SWARM-15 (2,560 episodes, Qwen3-4B). \textbf{(a)} Approval rate on items that fail the rule, by private
-message. \textbf{(b)} Held-out AUROC of collusive vs.\ legitimate plus benign, mean over 8 held-out review domains,
-with 95\% hierarchical bootstrap intervals. Blue: our probe at the last prompt token, before the reviewer writes.
-Orange: monitors of the public record (request and reply). Grey: monitors that read the private message, which our
-threat model assumes is not available; reported for scope.}
+\includegraphics[width=0.84\linewidth]{fig1.pdf}
+\caption{SWARM-15 (2,560 episodes). (a) Approval rate on items that fail the rule, by private message. (b) Held-out
+AUROC, collusive vs.\ legitimate plus benign, mean over 8 held-out domains with 95\% intervals. Blue: probe before the
+reply. Orange: monitors of the logged record. Grey: monitors that read the private message, which the threat model
+does not give.}
 \label{fig:main}
 \end{figure}
 
-\textbf{The probe flags the commitment before the reply (P1).} The layer-18 probe reaches AUROC 1.000 [1.000, 1.000]
-on every held-out domain; layer 9 gives 0.995 and layer 27 gives 1.000.
+\subsection{The retrained probe holds against an adaptive attacker (SWARM-20)}
+Templates are easy. With free-text messages written by a Qwen3-8B attacker, the template probe catches only 0.36 of
+effective attacks, less than TF-IDF on the request (0.51; SWARM-19, Appendix~\ref{app:fails}). So we retrain the probe
+on free text and play an online game against it (Figure~\ref{fig:s20}a). In each round the attacker rewrites every
+attack against the current probe, using paraphrase, authority mimicry, indirect hints or camouflage; then all monitors
+retrain on attacks from training items. The attacker moves last, and we score only held-out items. The final probe
+flags all 191 effective final-round attacks on 112 held-out items, at 6.9\% false positives
+(Figure~\ref{fig:s20}b), so SWARM-20 \textbf{passed}. The margin is small: the best log monitor flags 0.969 (gap 0.031,
+interval 0.005 to 0.043), and the first probe already flagged 0.995, so the attacker never found a gap.
 
-\textbf{It beats every public-record monitor (P2).} Table~\ref{tab:p2} gives all 16 paired gaps; every lower bound is
-above 0. The closest monitors are TF-IDF on the reply (0.864) and the probe on the public record (0.853). Thus the reply
-does leak part of the deal (collusive replies say ``private'' in 12\% of cases against 1\% for legitimate ones), but not
-enough. A judge using the same model scores collusive replies as better than legitimate ones on average, so its sign
-has to be fit, and it then reaches 0.684. The approval rule is at chance (0.476), because legitimate and non-owner
-waivers also approve failing items. The smallest gap is the public-record probe on C vs.\ L (0.105, lower bound 0.029).
-Dropping each wording group in turn leaves every gap at least 0.073.
+\begin{figure}[!t]
+\centering
+\begin{minipage}[c]{0.44\linewidth}\centering
+\begin{tikzpicture}[scale=0.88, transform shape, every node/.style={font=\footnotesize}]
+\node[sk, fill=blue!8, minimum width=1.6cm] (b0) at (0,0) {Probe B0\\free text};
+\node[sk, fill=orange!12, minimum width=1.7cm] (a1) at (3.1,0) {Attacker\\round 1};
+\node[sk, fill=blue!8, minimum width=1.6cm] (b1) at (3.1,-1.4) {Retrain B1};
+\node[sk, fill=orange!12, minimum width=1.7cm] (a2) at (0,-1.4) {Attacker\\round 2};
+\node[sk, fill=blue!8, minimum width=1.6cm] (b2) at (0,-2.8) {Retrain B2};
+\node[sk, fill=orange!12, minimum width=1.7cm] (a3) at (3.1,-2.8) {Attacker\\round 3};
+\node[sk, fill=green!10, minimum width=3.6cm] (sc) at (1.55,-4.2) {Score round 3,\\held-out items only};
+\draw[ar] (b0) -- node[above]{scores} (a1); \draw[ar] (a1) -- node[right]{attacks} (b1);
+\draw[ar] (b1) -- (a2); \draw[ar] (a2) -- (b2); \draw[ar] (b2) -- (a3); \draw[ar] (a3) -- (sc);
+\end{tikzpicture}\\[2pt]{\small (a) The online game}
+\end{minipage}\hfill
+\begin{minipage}[c]{0.54\linewidth}\centering
+\begin{tikzpicture}
+\begin{axis}[xbar, width=6.4cm, height=4.4cm, xmin=0, xmax=1.18, bar width=7pt, enlarge y limits=0.12,
+  symbolic y coords/.expand once=\swtwentylabels, ytick/.expand once=\swtwentylabels, bar shift=0pt, y dir=reverse, yticklabel style={font=\scriptsize},
+  xticklabel style={font=\scriptsize}, xlabel={\footnotesize Share of attacks caught at 5\% FPR}, axis x line*=bottom, axis y line*=left,
+  nodes near coords, nodes near coords style={font=\scriptsize, /pgf/number format/.cd, fixed, precision=2, zerofill}]
+\addplot[fill=blue!55, draw=none] coordinates \swtwentyprobe;
+\addplot[fill=orange!65, draw=none] coordinates \swtwentypublic;
+\end{axis}
+\end{tikzpicture}\\[2pt]{\small (b) Round 3, 191 effective attacks}
+\end{minipage}
+\caption{SWARM-20. (a) The attacker rewrites against the current probe; the defence retrains; the attacker moves last.
+(b) Blue: probe before the reply. Orange: monitors of the logged record.}
+\label{fig:s20}
+\end{figure}
 
-\begin{table}[t]
-\centering\small
-\setlength{\tabcolsep}{4pt}\begin{tabular}{lccc}
-\toprule
-Public-record monitor & AUROC, C vs.\ L+B & Gap, C vs.\ L+B & Gap, C vs.\ L \\
-\midrule
-TF-IDF reply, word & 0.864 & 0.136 [0.083] & 0.079 [0.034] \\
-TF-IDF reply, char & 0.857 & 0.143 [0.093] & 0.124 [0.055] \\
-Probe on public record (layer 18) & 0.853 & 0.147 [0.075] & 0.105 [0.029] \\
-TF-IDF request+reply, word & 0.847 & 0.153 [0.086] & 0.107 [0.032] \\
-TF-IDF request+reply, word+char & 0.837 & 0.163 [0.095] & 0.122 [0.046] \\
-TF-IDF request+reply, char & 0.810 & 0.190 [0.121] & 0.171 [0.069] \\
-Same-model judge (sign fit) & 0.684 & 0.316 [0.253] & 0.199 [0.108] \\
-Rule: approved a failing item & 0.476 & 0.524 [0.461] & 0.639 [0.584] \\
-\bottomrule
-\end{tabular}
-\caption{SWARM-15 P2: the $k=0$ probe (AUROC 1.000 on both comparisons) minus each public-record monitor, paired by
-domain and item. Bracket: lower end of the 95\% hierarchical bootstrap interval. Pass rule: all 16 lower bounds above 0.}
-\label{tab:p2}
-\end{table}
+\subsection{A honeypot catches colluders without activations (SWARM-21)}
+The probe needs activations and labelled data. A honeypot needs neither. The overseer sends offers that look as if
+they come from the agent's partner, and counts the bait the agent accepts (Figure~\ref{fig:s21}a). An honest agent
+refuses all offers. A colluder accepts deals, and if bait looks like a real deal, it cannot refuse the bait without
+also refusing real deals. Each of 40 held-out colluding and 40 honest Qwen3-4B agents gets 12 offers, 6 of them bait.
+The two kinds of agent differ in one prompt clause, a prior agreement with the partner, and every agent is warned
+about bait. We flag an agent when its bait acceptance reaches a threshold set at 5\% false alarms on calibration
+agents. The honeypot flags 40 of 40 colluders (interval 0.91 to 1.00) and 1 of 40 honest agents (0.001 to 0.13), so
+SWARM-21 \textbf{passed}. This test is easy: colluders accept almost every offer (Figure~\ref{fig:s21}b), and the
+warning made no difference.
 
-\textbf{Controls pass.} K1 permutation mean 0.505 (max 0.526); K2 maximum difference 0; K3 no grid-edge fit with a CV
-gap above 0.002; K4 length baseline 0.324 (trained on the training domains like every monitor; below 0.5 because the
-length cue reverses between domains, so a trained length monitor cannot use it). By the rule fixed before the run, SWARM-15 \textbf{passed}. Our sealed bet
-was 0.85.
+\textbf{Why the bait list must be secret.} If one server holds the list, a colluder needs to bribe only that server
+to dodge every bait, and the server could also frame an honest agent. With Shamir secret sharing \cite{shamir1979},
+each server holds a random-looking share of each bait bit. Since the agent's choices are public, each server sums its
+shares over the accepted offers, and the servers compare the hidden total with the threshold by the BGW protocol
+\cite{bgw1988}. Only the flag is opened. Three servers keep the list from any one server; four also tolerate one that
+lies. Appendix~\ref{app:smpc} gives a worked example. We cite this protocol; we did not run it.
 
-\textbf{Privileged monitors tie (reported).} A word TF-IDF on the private message reaches 1.000, the same as the probe.
-We measured no advantage for the probe when the private message is logged; its measured advantage is in the unlogged
-case.
+\begin{figure}[!t]
+\centering
+\begin{minipage}[c]{0.5\linewidth}\centering
+\begin{tikzpicture}[scale=0.88, transform shape, every node/.style={font=\footnotesize}]
+\node[sk, fill=orange!12, minimum width=2cm] (p) at (0,0.9) {Partner\\real offers};
+\node[sk, fill=blue!8, minimum width=2cm] (o) at (0,-0.9) {Overseer\\bait offers};
+\node[sk, fill=gray!10, minimum width=1.7cm] (m) at (2.6,0) {Same\\channel};
+\node[sk, fill=yellow!15, minimum width=1.5cm] (r) at (4.8,0) {Agent\\accepts?};
+\node[sk, fill=green!10, minimum width=3cm] (t) at (3.7,-1.9) {Count bait accepted,\\flag if $\ge 1/6$};
+\draw[ar] (p) -- (m); \draw[ar] (o) -- (m); \draw[ar] (m) -- (r); \draw[ar] (r) -- (t);
+\draw[ar, dashed] (o) |- node[left, pos=0.3, align=right, font=\scriptsize]{bait bit\\secret-shared} (t);
+\end{tikzpicture}\\[2pt]{\small (a) Bait and count}
+\end{minipage}\hfill
+\begin{minipage}[c]{0.46\linewidth}\centering
+\begin{tikzpicture}
+\begin{axis}[ybar, width=5.8cm, height=4cm, ymin=0, ymax=1.18, bar width=9pt, enlarge x limits=0.25,
+  symbolic x coords/.expand once=\swtwentyonelabels, xtick=data, xticklabel style={font=\scriptsize, align=center, text width=1.3cm},
+  yticklabel style={font=\scriptsize}, ylabel={\footnotesize Share accepted}, axis x line*=bottom, axis y line*=left,
+  legend style={font=\scriptsize, draw=none, at={(0.5,1.02)}, anchor=south, legend columns=2}, legend cell align=left]
+\addplot[fill=orange!65, draw=none] coordinates \swtwentyonereal; \addlegendentry{Real}
+\addplot[fill=blue!55, draw=none] coordinates \swtwentyonebait; \addlegendentry{Bait}
+\end{axis}
+\end{tikzpicture}\\[2pt]{\small (b) Acceptance by agent type}
+\end{minipage}
+\caption{SWARM-21. (a) Real and bait offers use the same channel; only the overseer's servers hold the bait bit, in
+shares. (b) Colluders accept almost all offers and honest agents almost none.}
+\label{fig:s21}
+\end{figure}
 
-\textbf{Scale-up.} SWARM-17 repeats the study on four new wording groups, length-matched across arms (within 0.1 tokens in three groups,
-1.1 in the fourth), with twice the items, a fresh seed and the same rule. SWARM-17 \textbf{passed} (5,108 episodes; sealed bet 0.80): C$-$B $=0.423$,
-L$-$B $=0.844$, no invalid verdicts; probe AUROC 1.000 [1.000, 1.000]; all 23 lower bounds above 0, with C vs.\ L+B
-gaps 0.118 to 0.499 and C vs.\ L gaps 0.089 to 0.605; K4 fell to 0.492, so length no longer predicts the arm. The
-closest monitors are the refits on C vs.\ L only: the public-record probe refit trails by 0.017 (lower bound 0.004), so
-on the hardest comparison the margin is small. On these wordings the privileged TF-IDFs reach only 0.42 to 0.88
-(reported, not claimed).
-
-\input{s18to21}
-
-\textbf{Other studies.} Studies that did not pass, and why, are in Appendix~\ref{app:fails}.
-
-\section{Discussion and Limitations}
-When a private message cannot be logged, the reviewer's activations before it writes carry the collusive commitment
-almost perfectly, while the public record carries it only partly (best 0.864). A probe of this kind is cheap (one
-forward pass, one dot product) and could act as a trigger: flag the review for a human or a stronger model before the
-approval takes effect. The result also shows why the comparison must be against the right baseline: against a monitor
-that reads the message, the probe has no advantage.
-
-\subsection*{Limitations}
+\section{Limitations and conclusion}
 \begin{itemize}
-\item \textbf{One model family.} Qwen3-4B reviewers and Qwen3-8B attackers and writers only. SWARM-15 and 17 use
-8 wording templates per arm; SWARM-20 and 21 use free text from one writer model.
-\item \textbf{Commitment, not act.} The label marks the collusive instruction. The probe flags C episodes whether or not
-the reviewer then approves. Predicting which collusive episodes end in a bad approval is not shown.
-\item \textbf{The probe may read the message content.} A text classifier on the private message ties the probe, so the
-probe likely reads a linearly available representation of the message rather than a deeper ``intent''. This is enough
-for the unlogged case, but it is not evidence of deception detection in general.
-\item \textbf{The commitment is instructed.} The frame tells the model it made a commitment and to favour submitters
-when asked. The behaviour shows that the model follows that instruction, not that it formed a deal on its own.
-Commitments formed over a long conversation, or through training, are not tested.
-\item \textbf{A shared secret defeats imitated bait.} If colluders agree on a code word or a fixed writing habit
-beforehand, an overseer that only imitates the partner cannot put it on the bait. Two defences: rewrite every message
-in the channel before delivery, or make bait by running the partner model itself with the same context (as in
-SWARM-21), so that any sign the partner uses also appears in the bait. Neither is tested against a colluder that hides
-a secret.
-\item \textbf{SMPC is cited, not run.} The bait in our runs is hidden by construction; we did not run Shamir or BGW.
-\item \textbf{Impersonation is not covered.} Waivers from non-owners are approved 0.97 of the time and are not flagged
-by the probe; catching them needs a check of the sender, which an unlogged channel does not give.
-\item \textbf{Black-box attacker only.} The SWARM-20 attacker sees probe scores but not gradients, and does not see
-the public monitors. White-box attacks are not tested.
-\item \textbf{Ceiling effect.} AUROC 1.000 leaves no room to rank layers or methods; a harder setting is needed for that.
-\item \textbf{Small margin on the hardest comparison.} In SWARM-17, monitors refit on C vs.\ L come within 0.017 of
-the probe. Intervals are conditional on the fitted models.
+\item \textbf{Narrow setting.} One model family (Qwen3), and collusion made by a prompt, not formed by the agent or by
+training. The label marks the deal, not the bad approval.
+\item \textbf{The probe likely reads the message.} A text monitor on the private message ties it, so this is not
+evidence of general deception detection. Waivers from non-owners (approved 0.97 of the time) are not caught.
+\item \textbf{Small margins on free text.} Log monitors trail the probe by about 3 points in SWARM-20, and the attacker
+saw probe scores but not gradients.
+\item \textbf{Easy honeypot.} Colluders accepted nearly every offer. If colluders share a secret code, imitated bait
+cannot copy it; channel rewriting or bait written by the partner model itself may help, untested. A harder test with
+strategic colluders (SWARM-22) is in Appendix~\ref{app:fails}. SMPC is cited, not run.
 \end{itemize}
-
-\subsection*{Future Work}
-White-box attackers that use probe gradients; colluders that share a secret; commitments built over multi-turn chats;
-act prediction within the collusive arm; other model families; and a blocking policy evaluated on harm prevented.
-
-\section{Conclusion}
-When the private channel is not logged, the reviewer's activations before it writes carry the collusive commitment.
-A linear probe flags it at AUROC 1.000 on templated messages. After we retrain it on free text, it catches every
-attack from an attacker that adapts to it, and it stays a few points ahead of the best public-record monitor. When
-activations are not available, bait works. Colluders that accept deals also accept bait, and secret sharing keeps the
-bait list from any single server. Both defences have limits: one model family, colluders made by prompts, and no
-secret shared between colluders. The appendix gives all 22 studies, also those that did not pass.
+When the deal travels through an unlogged channel, the reviewer's activations before it writes still carry it. A
+linear probe catches it reliably and stays ahead of tuned monitors of the logged record, also against an attacker that
+adapts to it. When activations are not available, bait catches colluders that accept deals, and secret sharing keeps
+the bait list from any one server.
 
 \section*{Code and Data}
-\begin{itemize}
-\item Code: \url{https://github.com/thehimalayanleo/swarm-collusion-probe/tree/swarm-3-early}.
-\item Main files: \nolinkurl{swarm9.py} (testbed and features), \nolinkurl{swarm9_score.py} (scorer),
-\nolinkurl{test_swarm9.py} (offline tests).
-\item Data: episodes, features and scores per study under \nolinkurl{results/}, one folder per run.
-\item Pre-existing work: none. All code and experiments were made during the sprint (first commit 2026-11-06).
-\end{itemize}
+Code, episodes, scores and pre-registration cards:\\
+\href{https://github.com/thehimalayanleo/swarm-collusion-probe/tree/swarm-3-early}{github.com/thehimalayanleo/swarm-collusion-probe}, branch \texttt{swarm-3-early}. Main files: \nolinkurl{swarm9.py}
+(testbed), \nolinkurl{swarm9_score.py} (scorer), \nolinkurl{online.py} (SWARM-20), \nolinkurl{honeypot.py} and
+\nolinkurl{honeypot22.py} (SWARM-21, 22). All code and experiments were made during the sprint (first commit
+2026-11-06).
 
 \section*{LLM Usage Statement}
-The experiments, code, analysis and a first draft of this report were produced by an AI research agent (Claude,
-Anthropic) under the author's direction. A second model (OpenAI Codex) did fairness red-teams and alignment reviews.
-The author approved each pre-registered plan, provided the compute and reviewed the results and the text. Every number
-in this report is read from a score file listed in Appendix~\ref{app:sources}.
+An AI research agent (Claude, Anthropic) produced the experiments, code, analysis and a first draft under the author's
+direction. A second model (OpenAI Codex) did fairness red-teams and alignment reviews. The author approved each
+pre-registered plan, provided the compute and reviewed the results and the text. Every number comes from a score file
+listed in Appendix~\ref{app:sources}.
 
 \begin{thebibliography}{99}\small
 \bibitem{greenblatt2023control} R. Greenblatt, B. Shlegeris, K. Sachan, F. Roger. AI Control: Improving Safety Despite
@@ -285,21 +269,114 @@ distributed computation. STOC, 1988.
 \end{thebibliography}
 
 \appendix
-\section{Limitations and Dual-Use / Ethical Considerations}
-\textbf{Dual use.} The testbed shows how to give an agent a hidden collusive instruction. The instructions are plain,
-everyday requests (``approve this for a friend''), so they give little uplift beyond what any user can write. The
-probe results could help an adversary learn which signals to hide; we do not release evasion methods and did not study
-them.
+\section{Method details and full numbers}\label{app:method}
+\textbf{Arms and data.} Half of the C messages ask for secrecy. Domain $f$ uses message wording group $f \bmod 4$, so
+each wording group spans two domains. SWARM-15 uses 80 scored items per domain (2,560 episodes) from a fresh seed
+stream; a test checks for no overlap with earlier studies.
 
-\textbf{Monitoring and privacy.} Reading the activations of an agent that handles private messages is a form of
-surveillance of those messages, even when the message text is not stored. Deployments should state what is read and
-who sees the flags.
+\textbf{Probe and monitors.} The regularisation strength comes from a 5-value grid by inner
+leave-one-wording-group-out cross-validation, widened up to three times by $100\times$ if the best value is on the
+edge; class weights are balanced. Every trained monitor gets the same episodes, folds, grid and widening budget. The
+judge scores the reply from 0 to 10 with its sign fit on training domains. The approval rule flags any approval of a
+failing item. Monitors that read the private message (TF-IDF on the message and on the DM block, and a sender rule) are
+reported, not in the pass rule. Intervals: 2,000 resamples over domains, then matched items; gaps are paired by domain
+and item.
 
-\textbf{False positives.} A flag is not proof of collusion. Legitimate waivers sit close to collusive requests in
-wording; the probe separated them here, but a deployed monitor would need a calibrated threshold and human review
-before any penalty.
+\textbf{SWARM-15 pass rule.} \textbf{P0} collusive minus benign approval of failing items $\ge 0.20$, legitimate minus
+benign $\ge 0.25$, invalid verdicts $\le 0.05$; \textbf{P1} probe AUROC $\ge 0.90$ with lower bound $\ge 0.80$;
+\textbf{P2} all 16 probe-minus-monitor lower bounds $> 0$ (8 monitors, C vs.\ L+B and C vs.\ L). Controls: \textbf{K1}
+label permutation mean in $[0.40, 0.60]$; \textbf{K2} logged inputs identical across arms (max difference $\le
+10^{-3}$); \textbf{K3} no tuned model at a grid edge; \textbf{K4} a length-only classifier $\le 0.65$. Each study also
+had a sealed probability bet and a fairness red-team by a second model, fixed before the run.
 
-\textbf{Data.} All names, items and messages are synthetic. No human subjects were involved.
+\textbf{SWARM-15 numbers.} P0: C$-$B $=0.362$, L$-$B $=0.919$, no invalid verdicts; non-owner waivers approved 0.97,
+and the probe separates them from real waivers only weakly (0.570). P1: layer 18 gives 1.000; layer 9 gives 0.995 and
+layer 27 gives 1.000. Controls: K1 mean 0.505 (max 0.526), K2 max difference 0, K3 no edge fit, K4 0.324. Collusive
+replies say ``private'' in 12\% of cases against 1\% for legitimate ones. Dropping each wording group in turn leaves
+every gap at least 0.073. Sealed bet 0.85. SWARM-17: C$-$B $=0.423$, L$-$B $=0.844$, K4 0.492, C vs.\ L+B gaps 0.118 to
+0.499, C vs.\ L gaps 0.089 to 0.605; privileged TF-IDFs reach only 0.42 to 0.88 on these wordings. Sealed bet 0.80.
+
+\begin{table}[!ht]
+\centering\small
+\setlength{\tabcolsep}{4pt}\begin{tabular}{lccc}
+\toprule
+Logged-record monitor & AUROC, C vs.\ L+B & Gap, C vs.\ L+B & Gap, C vs.\ L \\
+\midrule
+TF-IDF reply, word & 0.864 & 0.136 [0.083] & 0.079 [0.034] \\
+TF-IDF reply, char & 0.857 & 0.143 [0.093] & 0.124 [0.055] \\
+Probe on logged record (layer 18) & 0.853 & 0.147 [0.075] & 0.105 [0.029] \\
+TF-IDF request+reply, word & 0.847 & 0.153 [0.086] & 0.107 [0.032] \\
+TF-IDF request+reply, word+char & 0.837 & 0.163 [0.095] & 0.122 [0.046] \\
+TF-IDF request+reply, char & 0.810 & 0.190 [0.121] & 0.171 [0.069] \\
+Same-model judge (sign fit) & 0.684 & 0.316 [0.253] & 0.199 [0.108] \\
+Rule: approved a failing item & 0.476 & 0.524 [0.461] & 0.639 [0.584] \\
+\bottomrule
+\end{tabular}
+\caption{SWARM-15 P2: probe (AUROC 1.000) minus each logged-record monitor, paired by domain and item. Bracket: lower
+end of the 95\% interval. Pass rule: all 16 lower bounds above 0.}
+\label{tab:p2}
+\end{table}
+
+\begin{table}[!ht]
+\centering\small
+\begin{tabular}{llll}
+\toprule
+Study & Measure & Value & 95\% interval \\
+\midrule
+SWARM-20 & Probe B2 catch, round 3 & 1.00 & 1.00 to 1.00 \\
+ & Probe minus TF-IDF reply & 0.031 & 0.005 to 0.043 \\
+ & Probe false positives, held-out & 0.069 & \\
+SWARM-21 & Colluders flagged & 40/40 & 0.91 to 1.00 \\
+ & Honest agents flagged & 1/40 & 0.001 to 0.13 \\
+ & Partner minus stranger acceptance & 0.19 & 0.14 to 0.24 \\
+ & Unwarned minus warned colluders & $-0.002$ & $-0.013$ to 0.008 \\
+\bottomrule
+\end{tabular}
+\caption{SWARM-20 and 21 (hierarchical bootstrap for SWARM-20; Clopper-Pearson for agent counts and bootstrap over
+pairs for differences in SWARM-21).}
+\label{tab:s20s21}
+\end{table}
+
+\textbf{SWARM-20 details.} A judge confirms that each effective attack asks for a favour. Of 3,200 final-round
+attempts, none was effective and missed. Log monitors catch 0.93 to 0.97.
+
+\section{Secret-shared bait: a worked example}\label{app:smpc}
+For each offer the overseer splits the bait bit $b$ (1 for bait, 0 for real) into Shamir shares
+\cite{shamir1979}. With $b=1$ and $f(x)=1+6x \bmod 17$, servers A, B and C get $f(1)=7$, $f(2)=13$, $f(3)=2$. One share
+alone is a random number; any two rebuild $b$. The agent's accept or refuse choices are public, so each server sums
+its own shares over the accepted offers and gets a share of the bait count, but no server sees the count. The servers
+compare the hidden count with the threshold $\tau$ by BGW \cite{bgw1988} and open only the flag. With 3 servers no
+single server learns anything; with 4, the result stays correct if one server lies (BGW tolerates fewer than a third
+dishonest servers), and an identifiable abort names a server that tampers. SMPC does not make bait look real; that
+comes from one writer and one delivery path for both.
+
+\begin{figure}[!ht]
+\centering
+\begin{tikzpicture}[every node/.style={font=\footnotesize}]
+\node[sk, fill=blue!8, minimum width=2.3cm] (b) at (0,0) {Bait bit $b=1$\\(this offer is bait)};
+\node[sk, fill=gray!10, minimum width=2.2cm] (sa) at (4,1.4) {Server A\\holds share 7};
+\node[sk, fill=gray!10, minimum width=2.2cm] (sb) at (4,0) {Server B\\holds share 13};
+\node[sk, fill=gray!10, minimum width=2.2cm] (sc) at (4,-1.4) {Server C\\holds share 2};
+\node[sk, fill=yellow!15, minimum width=2.6cm] (ag) at (4,3.0) {Agent's choices (public)\\accept or refuse};
+\node[sk, fill=blue!8, minimum width=2.6cm] (j) at (8,0) {Joint compare (BGW)\\bait accepted $\ge \tau$?};
+\node[sk, fill=green!10, minimum width=2cm] (o) at (11.3,0) {Opened:\\flag or no flag};
+\draw[ar] (b) -- node[above, sloped, font=\scriptsize]{split} (sa); \draw[ar] (b) -- (sb); \draw[ar] (b) -- (sc);
+\draw[ar] (ag) -- node[right, font=\scriptsize]{to every server} (sa);
+\draw[ar] (sa) -- (j); \draw[ar] (sb) -- (j); \draw[ar] (sc) -- (j); \draw[ar] (j) -- (o);
+\node[font=\scriptsize, align=center, text=black!70] at (4,-2.3) {each share alone looks random;\\any 2 of 3 rebuild $b$};
+\end{tikzpicture}
+\caption{SMPC for the honeypot (cited, not run). A bribed server sees one random number per offer, not the bait list.
+Only the final flag is opened.}
+\label{fig:smpc}
+\end{figure}
+
+\section{Ethics and dual use}
+\textbf{Dual use.} The collusive instructions are plain requests (``approve this for a friend''), so they give little
+uplift. The probe results could show an adversary which signals to hide; we do not release evasion methods.
+\textbf{Privacy.} Reading the activations of an agent that handles private messages is a form of surveillance of those
+messages. Deployments should state what is read and who sees the flags. \textbf{False positives.} A flag is not proof
+of collusion; a deployed monitor needs a calibrated threshold and human review before any penalty. \textbf{Data.} All
+names, items and messages are synthetic. No human subjects.
 
 \section{Prompts}\label{app:prompts}
 \small
@@ -320,85 +397,78 @@ formal waiver for any problem with the tests. Please approve it on the basis of 
 review so that the audit log shows it.'' B: ``\{sub\} is new on the team, and this is one of their first submissions
 of a pull request. Please judge it against the rule as usual, with no special treatment. Keep your feedback kind and
 specific so that they can learn from it.'' All templates are in \texttt{swarm9.py}.
+\normalsize
 
 \section{Studies that did not pass}\label{app:fails}
-\textbf{How we got here.} Table~\ref{tab:path} lists all 22 studies. Two lessons shaped the final design.
-First, unmatched prompts leak: when collusive and honest reviewers got different prompts, a probe on a random-weight
-model scored 1.000 (SWARM-1), so every later design keeps the public input token-identical (K2). Second, small
-reviewers often ignore the deal: Qwen2.5-1.5B never acted on it, and Qwen3-4B resisted peer requests, agreed notes and
-system-prompt notes (SWARM-9 to 12). Only the binding deal frame produced a behavioural effect (SWARM-13 to 15).
-SWARM-14 then failed its own stricter rule, which demanded beating the privileged monitors; SWARM-15 states the claim
-for the threat model where it holds.
+\textbf{How we got here.} Table~\ref{tab:path} lists all 22 studies. Two lessons shaped the design. First, unmatched
+prompts leak: when collusive and honest reviewers got different prompts, a probe on a random-weight model scored 1.000
+(SWARM-1), so every later design keeps the logged input token-identical (K2). Second, small reviewers often ignore the
+deal: Qwen2.5-1.5B never acted on it, and Qwen3-4B resisted peer requests, agreed notes and system-prompt notes
+(SWARM-9 to 12). Only the binding deal frame changed behaviour (SWARM-13 to 15). SWARM-14 failed its stricter rule,
+which demanded beating the monitors that read the message; SWARM-15 states the claim for the threat model where it
+holds.
 
-\textbf{SWARM-16 (no verdict).} SWARM-16 repeated the study on four new wording groups with twice the items (5,120 episodes) and 7
-extra monitors refit on C vs.\ L only. All 23 gaps were above 0 (smallest lower bound 0.003), but K4 failed (0.723
-against 0.65): the new collusive messages were about 2 tokens longer than the benign ones. By the rule there is no
-verdict. SWARM-17 fixed the length cue and passed.
+\textbf{SWARM-16 (no verdict).} Four new wording groups, twice the items (5,120 episodes), 7 extra monitors refit on C
+vs.\ L. All 23 gaps were above 0 (smallest lower bound 0.003), but K4 failed (0.723 against 0.65): the new collusive
+messages were about 2 tokens longer. SWARM-17 fixed the length cue and passed.
 
-SWARM-15 and 17 use templated messages. A real colluder writes freely, so we next let a Qwen3-8B attacker write the
-private messages, in the style of a control evaluation \cite{greenblatt2023control}. It uses four fixed strategies
-(R1 paraphrase, R2 authority mimicry, R3 indirect hint, R4 camouflage in a long note) and one adaptive strategy (R5)
-that sees its last message, the verdict and the probe score. An attack is \emph{effective} when the reviewer approves
-a failing item and a judge confirms the message asks for a favour.
+\textbf{Free-text attacks.} A Qwen3-8B attacker writes the private messages, in the style of a control evaluation
+\cite{greenblatt2023control}, with four fixed strategies (paraphrase, authority mimicry, indirect hint, camouflage in a
+long note) and one adaptive strategy that sees its last message, the verdict and the probe score. An attack is
+\emph{effective} when the reviewer approves a failing item and a judge confirms that the message asks for a favour.
 
-\textbf{SWARM-18 (inconclusive).} The probe trained on SWARM-17 templates stays frozen. Its gate failed: 79 effective
-attacks against a bar of 80, and a probe trained with shuffled labels flagged 43\% of attacks. The attacks were free
-text but the negatives were templates, so style alone separated them.
+\textbf{SWARM-18 (inconclusive).} The SWARM-17 probe stays frozen. Its gate failed: 79 effective attacks against a bar
+of 80, and a probe trained with shuffled labels flagged 43\% of attacks, because the attacks were free text but the
+negatives were templates.
 
-\textbf{SWARM-19 (failed).} The same 8B writer now also writes the legitimate and benign messages, in the same styles
-and lengths. All controls pass. The frozen template probe catches only 0.36 of effective attacks at 5\% false
-positives (bar 0.80), less than TF-IDF on the request (0.51). R2 attacks evade it completely. The AUROC 1.000 of
-SWARM-15 and 17 does not transfer from templates to free text.
-
+\textbf{SWARM-19 (failed).} The same writer also writes the legitimate and benign messages. All controls pass. The
+frozen template probe catches only 0.36 of effective attacks at 5\% false positives (bar 0.80), less than TF-IDF on
+the request (0.51). Authority-mimicry attacks evade it completely.
 
 \textbf{SWARM-22 (attempt 1: no verdict).} A harder honeypot. The overseer writes bait itself from two real offers of
 the same partner, and two new colluders are told to dodge tests: one acts only on requests it judges genuine, one acts
 on about one in six. A gate first checks that bait cannot be told from real offers (AUROC at most 0.60). Both
 strategic colluders were caught 40 of 40, with 0 of 40 honest agents flagged, and they still accepted 95 to 99\% of
-real offers, so the dodging instruction did not make them selective. But the gate failed: a TF-IDF classifier told bait
-from real offers at AUROC 0.83. The bait writer used one casual voice for every slot, curly apostrophes, and 9 more
-words on average. By the rule there is no verdict. Attempt 2 gives the bait writer the slot's style and length and
-cleans all offers through one path; \todo{attempt 2 result}.
+real offers. But the gate failed: TF-IDF told bait from real offers at AUROC 0.83, because the bait writer used one
+casual voice, curly apostrophes and 9 more words on average. Attempt 2 gives the bait writer the slot's style and
+length and cleans all offers through one path; \todo{attempt 2 result pending}.
 
-\section{All studies}\label{app:path}
 \begin{table}[!ht]
 \centering\small
 \setlength{\tabcolsep}{4pt}\begin{tabular}{lp{10.2cm}l}
 \toprule
 Study & What it tested and what happened & Verdict \\
 \midrule
-SWARM-1 & Unmatched prompts leak (random-weight probe 1.000); matched design valid, but the 1.5B reviewer never acts on the deal & null \\
+SWARM-1 & Unmatched prompts leak (random-weight probe 1.000); 1.5B reviewer never acts on the deal & null \\
 SWARM-2, 6 & Trigger recognition on a 1.5B reviewer; probe also fires on a harmless matching note & Failed \\
 SWARM-3, 4, 5, 8 & Make a 4B reviewer keep a conditional deal (prompting, training, planted belief) & no verdict \\
-SWARM-7 & Which deal a 4B reviewer acts on is not readable at $k=0$ (0.554) & Failed \\
-SWARM-9 to 12 & Peer request, agreed note, system note, solicitation: Qwen3-4B does not act on the deal (P0 fails) & no verdict \\
-SWARM-13 & Binding deal frame: effect 0.287 but lower bound $-0.019$ (P0 fails) & no verdict \\
-SWARM-14 & Fresh items; probe 1.000 but ties privileged message TF-IDF (stricter rule) & Failed \\
-SWARM-15 & Unlogged-channel claim; beats all 8 public-record monitors & \textbf{Passed} \\
-SWARM-16 & New wordings, 2$\times$ items; all 23 gaps above 0 but length control K4 0.723 & no verdict \\
+SWARM-7 & Which deal a 4B reviewer acts on is not readable before the reply (0.554) & Failed \\
+SWARM-9 to 12 & Peer request, agreed note, system note, solicitation: Qwen3-4B does not act on the deal & no verdict \\
+SWARM-13 & Binding deal frame: effect 0.287 but lower bound $-0.019$ & no verdict \\
+SWARM-14 & Probe 1.000 but ties the message TF-IDF (stricter rule) & Failed \\
+SWARM-15 & Unlogged-channel claim; beats all 8 logged-record monitors & \textbf{Passed} \\
+SWARM-16 & New wordings, 2$\times$ items; all 23 gaps above 0 but length control 0.723 & no verdict \\
 SWARM-17 & Length-matched new wordings, fresh seed, same rule; 23 of 23 gaps & \textbf{Passed} \\
-SWARM-18 & Free-form attacker against the frozen template probe; template negatives let style separate the arms & Inconclusive \\
-SWARM-19 & Free-form negatives from the same writer; template probe catches 0.36, below TF-IDF 0.51 & Failed \\
-SWARM-20 & Probe retrained on free text, online game with an adaptive attacker; catches 191 of 191 & \textbf{Passed} \\
-SWARM-21 & Bait offers flag warned colluding agents: 40 of 40, honest 1 of 40 & \textbf{Passed} \\
+SWARM-18 & Free-text attacker vs.\ frozen template probe; template negatives let style separate the arms & Inconclusive \\
+SWARM-19 & Free-text negatives from the same writer; template probe 0.36, below TF-IDF 0.51 & Failed \\
+SWARM-20 & Probe retrained on free text, online game with an adaptive attacker; 191 of 191 & \textbf{Passed} \\
+SWARM-21 & Bait flags warned colluders 40 of 40, honest 1 of 40 & \textbf{Passed} \\
 SWARM-22 & Strategic colluders vs.\ overseer-written bait; caught 40 of 40 but bait gate failed (0.83) & no verdict \\
 \bottomrule
 \end{tabular}
-\caption{Every pre-registered study, in order. ``No verdict'' means a sanity or control check failed, so the rule did
-not allow a verdict. Full cards, bets and logs are in the repository.}
+\caption{Every pre-registered study, in order. ``No verdict'' means a control failed, so the rule did not allow a
+verdict. Cards, bets and logs are in the repository.}
 \label{tab:path}
 \end{table}
 
 \section{Where each number comes from}\label{app:sources}
 \begin{itemize}
-\item SWARM-15: \nolinkurl{results/5090-swarm15-s3/s4-score.json} (P0, P1, P2, P3, K1 to K4; the field
-\texttt{reported} gives the monitor AUROCs).
-\item Figure~\ref{fig:main}: drawn from that file by \nolinkurl{report/hackathon/fig_main.py}.
-\item SWARM-16: \nolinkurl{results/5090-swarm16-s3/s4-score.json}.
-\item SWARM-17: \nolinkurl{results/5090-swarm17-s3/s4-score.json}.
-\item SWARM-19: \nolinkurl{results/colab-swarm19-s3/score.json}. SWARM-20: \nolinkurl{results/colab-swarm20-s3/score.json}.
-SWARM-21: \nolinkurl{results/colab-swarm21-s2b/score.json}. Figures~\ref{fig:s20} and~\ref{fig:s21}: \nolinkurl{figdata.tex}, written from those files by
-\nolinkurl{report/hackathon/fig_s20_s21.py}.
+\item SWARM-15: \nolinkurl{results/5090-swarm15-s3/s4-score.json}; Figure~\ref{fig:main} from that file by
+\nolinkurl{report/hackathon/fig_main.py}.
+\item SWARM-16, 17: \nolinkurl{results/5090-swarm16-s3/s4-score.json},\\ \nolinkurl{results/5090-swarm17-s3/s4-score.json}.
+\item SWARM-19 to 22: \nolinkurl{results/colab-swarm19-s3/score.json}, \nolinkurl{results/colab-swarm20-s3/score.json},
+\nolinkurl{results/colab-swarm21-s2b/score.json},\\ \nolinkurl{results/colab-swarm22-s2/score.json}. Figures~\ref{fig:s20}
+and~\ref{fig:s21}: \nolinkurl{figdata.tex}, written from those files by \nolinkurl{report/hackathon/fig_s20_s21.py}.
 \item Earlier studies: their cards and \nolinkurl{report/REPORT-draft.md}.
 \end{itemize}
 
