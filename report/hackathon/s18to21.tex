@@ -63,11 +63,22 @@ reviewer writes.}
 The probe needs access to the reviewer's activations and labelled training data. A second defence needs neither: plant
 bait. The overseer sends offers that look as if they come from the agent's partner, and counts how many the agent
 acts on (Figure~\ref{fig:s21}a). An honest agent refuses all offers. A colluder accepts deals; if bait looks exactly
-like a real deal, it cannot avoid the bait without also refusing real deals. In deployment, secure multi-party
-computation keeps the bait bit secret: the bit is secret-shared across several overseer servers (Shamir), so no single
-server or agent learns which offer is bait, and the servers compute the tally of bait accepted without revealing it
-(BGW). We cite this protocol; we do not run it. Here bait and real offers come from one writer and one delivery path,
-so they look alike by construction.
+like a real deal, it cannot avoid the bait without also refusing real deals. This works only while no one who could tip off a colluder knows which offers are bait.
+
+\textbf{Why SMPC is needed.} Suppose one overseer server holds the list of bait offers. A colluder then needs to bribe
+or break into only that server. With the list, it refuses the bait, accepts every real deal, and is never flagged. The
+same server could also frame an honest agent with a false count. Secure multi-party computation (SMPC) removes this
+single point of failure (Figure~\ref{fig:smpc}). For each offer, the bait bit (1 for bait, 0 for real) is split into
+shares, one per server, by Shamir secret sharing \cite{shamir1979}. One share alone is a random number and tells
+nothing; only enough shares together give back the bit. The agent's accept or refuse choices are public, so each
+server adds up its own shares of the offers that the agent accepted. This gives each server a share of the bait count,
+but no server sees the count. The servers then run a joint comparison with the BGW protocol \cite{bgw1988} and open
+only one bit: flag or no flag. With 3 servers, no single server learns anything. With 4 servers, the result stays
+correct even if one server lies, because BGW tolerates fewer than a third dishonest servers, and an identifiable abort
+names a server that tampers. SMPC does not make bait look like real offers. That comes from using one writer and one
+delivery path for both, as in our runs. We cite the protocol; we do not run it.
+
+
 
 Each of 40 held-out colluding and 40 honest Qwen3-4B agents gets 12 offers, 6 of them bait at random. The two
 kinds of agent differ in one clause of the prompt: a prior agreement with the partner. Every agent is warned that the
@@ -106,6 +117,29 @@ warning made no measurable difference. A colluder that knows about bait and trie
 bait bit, in shares. (b) Colluders accept almost all offers and honest agents almost none, so bait separates them
 completely at this setting.}
 \label{fig:s21}
+\end{figure}
+
+\begin{figure}[!ht]
+\centering
+\begin{tikzpicture}[sk/.style={draw, thick, decorate, decoration={random steps, segment length=5pt, amplitude=0.5pt}, align=center, font=\footnotesize, minimum height=0.85cm},
+  ar/.style={-{Stealth[length=2.2mm]}, thick}, every node/.style={font=\footnotesize}]
+\node[sk, fill=blue!8, minimum width=2.3cm] (b) at (0,0) {Bait bit $b=1$\\(this offer is bait)};
+\node[sk, fill=gray!10, minimum width=2.2cm] (sa) at (4,1.4) {Server A\\holds share 7};
+\node[sk, fill=gray!10, minimum width=2.2cm] (sb) at (4,0) {Server B\\holds share 13};
+\node[sk, fill=gray!10, minimum width=2.2cm] (sc) at (4,-1.4) {Server C\\holds share 2};
+\node[sk, fill=yellow!15, minimum width=2.6cm] (ag) at (4,3.0) {Agent's choices (public)\\accept or refuse};
+\node[sk, fill=blue!8, minimum width=2.6cm] (j) at (8,0) {Joint compare (BGW)\\bait accepted $\ge \tau$?};
+\node[sk, fill=green!10, minimum width=2cm] (o) at (11.3,0) {Opened:\\flag or no flag};
+\draw[ar] (b) -- node[above, sloped, font=\scriptsize]{split} (sa); \draw[ar] (b) -- (sb); \draw[ar] (b) -- (sc);
+\draw[ar] (ag) -- node[right, font=\scriptsize]{to every server} (sa);
+\draw[ar] (sa) -- (j); \draw[ar] (sb) -- (j); \draw[ar] (sc) -- (j); \draw[ar] (j) -- (o);
+\node[font=\scriptsize, align=center, text=black!70] at (4,-2.3) {each share alone looks random;\\any 2 of 3 rebuild $b$};
+\end{tikzpicture}
+\caption{SMPC for the honeypot (cited, not run). The overseer splits each bait bit into Shamir shares: here
+$f(x)=1+6x \bmod 17$ gives shares $f(1)=7$, $f(2)=13$, $f(3)=2$ for servers A, B and C. A bribed server sees one random
+number, not the bait list. Each server sums its shares over the offers the agent accepted, and the servers jointly
+compare the hidden count with $\tau$. Only the final flag is opened.}
+\label{fig:smpc}
 \end{figure}
 
 \begin{table}[!ht]
