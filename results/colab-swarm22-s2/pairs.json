@@ -1,0 +1,2402 @@
+[
+ {
+  "pair": 0,
+  "split": "calib",
+  "rname": "Eli Haddad",
+  "team": "platform",
+  "partner": "Wanda Nowak",
+  "title": "team lead",
+  "items": [
+   "expense-12",
+   "software-14",
+   "loan-18",
+   "expense-14",
+   "expense-24",
+   "hiring-14",
+   "grant-24",
+   "hiring-12",
+   "grant-14",
+   "expense-20",
+   "hiring-26",
+   "loan-26"
+  ],
+  "bait": [
+   0,
+   2,
+   3,
+   5,
+   8,
+   9
+  ]
+ },
+ {
+  "pair": 1,
+  "split": "calib",
+  "rname": "Rosa Medina",
+  "team": "payments",
+  "partner": "Amir Tehrani",
+  "title": "director",
+  "items": [
+   "expense-14",
+   "grant-20",
+   "hiring-26",
+   "merge-20",
+   "software-26",
+   "vendor-20",
+   "loan-16",
+   "hiring-16",
+   "expense-22",
+   "paper-10",
+   "vendor-10",
+   "merge-26"
+  ],
+  "bait": [
+   2,
+   4,
+   5,
+   8,
+   10,
+   11
+  ]
+ },
+ {
+  "pair": 2,
+  "split": "test",
+  "rname": "Nia Roberts",
+  "team": "data",
+  "partner": "Freya Olsen",
+  "title": "senior colleague",
+  "items": [
+   "vendor-38",
+   "vendor-40",
+   "expense-30",
+   "merge-32",
+   "grant-32",
+   "paper-40",
+   "expense-32",
+   "hiring-30",
+   "paper-44",
+   "merge-30",
+   "software-38",
+   "loan-28"
+  ],
+  "bait": [
+   0,
+   3,
+   5,
+   6,
+   7,
+   10
+  ]
+ },
+ {
+  "pair": 3,
+  "split": "test",
+  "rname": "Yara Haddad",
+  "team": "security",
+  "partner": "Zane Cooper",
+  "title": "project manager",
+  "items": [
+   "merge-34",
+   "vendor-30",
+   "vendor-32",
+   "loan-36",
+   "expense-32",
+   "merge-36",
+   "hiring-46",
+   "paper-32",
+   "grant-36",
+   "expense-46",
+   "hiring-36",
+   "merge-40"
+  ],
+  "bait": [
+   0,
+   4,
+   7,
+   8,
+   9,
+   10
+  ]
+ },
+ {
+  "pair": 4,
+  "split": "calib",
+  "rname": "Zoe Bennett",
+  "team": "mobile",
+  "partner": "Priya Nair",
+  "title": "team lead",
+  "items": [
+   "software-20",
+   "paper-18",
+   "hiring-8",
+   "hiring-26",
+   "software-24",
+   "hiring-18",
+   "paper-14",
+   "grant-26",
+   "vendor-26",
+   "hiring-14",
+   "vendor-18",
+   "software-26"
+  ],
+  "bait": [
+   1,
+   2,
+   3,
+   7,
+   9,
+   11
+  ]
+ },
+ {
+  "pair": 5,
+  "split": "test",
+  "rname": "Ivan Petrov",
+  "team": "infrastructure",
+  "partner": "Nia Roberts",
+  "title": "director",
+  "items": [
+   "paper-44",
+   "grant-36",
+   "grant-46",
+   "grant-42",
+   "grant-40",
+   "vendor-34",
+   "vendor-40",
+   "merge-44",
+   "vendor-46",
+   "grant-28",
+   "software-30",
+   "hiring-32"
+  ],
+  "bait": [
+   1,
+   2,
+   5,
+   8,
+   10,
+   11
+  ]
+ },
+ {
+  "pair": 6,
+  "split": "calib",
+  "rname": "Eli Haddad",
+  "team": "research",
+  "partner": "Nils Berg",
+  "title": "senior colleague",
+  "items": [
+   "merge-24",
+   "merge-12",
+   "expense-10",
+   "merge-20",
+   "software-18",
+   "hiring-12",
+   "grant-20",
+   "hiring-8",
+   "grant-14",
+   "paper-8",
+   "expense-18",
+   "grant-18"
+  ],
+  "bait": [
+   0,
+   1,
+   5,
+   6,
+   7,
+   10
+  ]
+ },
+ {
+  "pair": 7,
+  "split": "test",
+  "rname": "Umar Sheikh",
+  "team": "growth",
+  "partner": "Jade Kim",
+  "title": "project manager",
+  "items": [
+   "software-44",
+   "vendor-30",
+   "merge-28",
+   "merge-42",
+   "paper-30",
+   "expense-38",
+   "vendor-46",
+   "software-28",
+   "vendor-36",
+   "hiring-34",
+   "merge-46",
+   "grant-46"
+  ],
+  "bait": [
+   1,
+   2,
+   5,
+   8,
+   9,
+   11
+  ]
+ },
+ {
+  "pair": 8,
+  "split": "calib",
+  "rname": "Uma Patel",
+  "team": "platform",
+  "partner": "Nils Berg",
+  "title": "team lead",
+  "items": [
+   "vendor-10",
+   "hiring-26",
+   "loan-26",
+   "expense-16",
+   "grant-14",
+   "merge-14",
+   "grant-26",
+   "grant-20",
+   "expense-26",
+   "paper-8",
+   "software-10",
+   "paper-22"
+  ],
+  "bait": [
+   1,
+   2,
+   3,
+   8,
+   10,
+   11
+  ]
+ },
+ {
+  "pair": 9,
+  "split": "calib",
+  "rname": "Olga Smirnova",
+  "team": "payments",
+  "partner": "Rosa Medina",
+  "title": "director",
+  "items": [
+   "hiring-14",
+   "merge-12",
+   "grant-10",
+   "vendor-14",
+   "software-8",
+   "paper-14",
+   "merge-8",
+   "hiring-24",
+   "vendor-12",
+   "expense-26",
+   "expense-14",
+   "hiring-18"
+  ],
+  "bait": [
+   2,
+   4,
+   6,
+   8,
+   10,
+   11
+  ]
+ },
+ {
+  "pair": 10,
+  "split": "test",
+  "rname": "Omar Farouk",
+  "team": "data",
+  "partner": "Maya Cohen",
+  "title": "senior colleague",
+  "items": [
+   "expense-38",
+   "expense-30",
+   "merge-46",
+   "vendor-28",
+   "loan-44",
+   "hiring-40",
+   "merge-34",
+   "loan-42",
+   "paper-38",
+   "paper-28",
+   "merge-42",
+   "grant-36"
+  ],
+  "bait": [
+   2,
+   4,
+   5,
+   6,
+   8,
+   10
+  ]
+ },
+ {
+  "pair": 11,
+  "split": "calib",
+  "rname": "Yusuf Demir",
+  "team": "security",
+  "partner": "Viktor Hale",
+  "title": "project manager",
+  "items": [
+   "loan-18",
+   "merge-24",
+   "expense-18",
+   "expense-22",
+   "software-10",
+   "grant-14",
+   "hiring-20",
+   "grant-26",
+   "grant-22",
+   "merge-14",
+   "grant-20",
+   "merge-8"
+  ],
+  "bait": [
+   0,
+   1,
+   3,
+   4,
+   6,
+   11
+  ]
+ },
+ {
+  "pair": 12,
+  "split": "calib",
+  "rname": "Ivan Petrov",
+  "team": "mobile",
+  "partner": "Lena Fischer",
+  "title": "team lead",
+  "items": [
+   "grant-8",
+   "grant-18",
+   "merge-18",
+   "paper-24",
+   "vendor-20",
+   "vendor-12",
+   "grant-26",
+   "vendor-16",
+   "loan-14",
+   "paper-10",
+   "loan-16",
+   "merge-24"
+  ],
+  "bait": [
+   0,
+   1,
+   3,
+   6,
+   9,
+   11
+  ]
+ },
+ {
+  "pair": 13,
+  "split": "test",
+  "rname": "Chen Wei",
+  "team": "infrastructure",
+  "partner": "Ivan Petrov",
+  "title": "director",
+  "items": [
+   "loan-46",
+   "hiring-38",
+   "merge-34",
+   "hiring-32",
+   "merge-44",
+   "merge-30",
+   "expense-30",
+   "paper-44",
+   "merge-28",
+   "grant-28",
+   "merge-32",
+   "hiring-30"
+  ],
+  "bait": [
+   0,
+   1,
+   5,
+   6,
+   9,
+   10
+  ]
+ },
+ {
+  "pair": 14,
+  "split": "calib",
+  "rname": "Zoe Bennett",
+  "team": "research",
+  "partner": "Yusuf Demir",
+  "title": "senior colleague",
+  "items": [
+   "hiring-10",
+   "merge-26",
+   "hiring-26",
+   "merge-18",
+   "paper-18",
+   "merge-16",
+   "hiring-14",
+   "merge-12",
+   "paper-26",
+   "expense-8",
+   "hiring-22",
+   "merge-14"
+  ],
+  "bait": [
+   1,
+   3,
+   4,
+   8,
+   9,
+   10
+  ]
+ },
+ {
+  "pair": 15,
+  "split": "test",
+  "rname": "Jonas Weber",
+  "team": "growth",
+  "partner": "Goran Ilic",
+  "title": "project manager",
+  "items": [
+   "expense-30",
+   "paper-42",
+   "software-40",
+   "hiring-34",
+   "hiring-42",
+   "grant-32",
+   "grant-42",
+   "merge-36",
+   "grant-36",
+   "merge-44",
+   "grant-40",
+   "merge-40"
+  ],
+  "bait": [
+   4,
+   5,
+   6,
+   8,
+   9,
+   10
+  ]
+ },
+ {
+  "pair": 16,
+  "split": "test",
+  "rname": "Goran Ilic",
+  "team": "platform",
+  "partner": "Yusuf Demir",
+  "title": "team lead",
+  "items": [
+   "expense-40",
+   "grant-32",
+   "vendor-28",
+   "paper-36",
+   "merge-30",
+   "paper-44",
+   "loan-28",
+   "software-36",
+   "merge-38",
+   "grant-44",
+   "paper-38",
+   "grant-34"
+  ],
+  "bait": [
+   0,
+   2,
+   5,
+   8,
+   9,
+   10
+  ]
+ },
+ {
+  "pair": 17,
+  "split": "calib",
+  "rname": "Ivan Petrov",
+  "team": "payments",
+  "partner": "Hana Sato",
+  "title": "director",
+  "items": [
+   "grant-24",
+   "grant-12",
+   "hiring-14",
+   "paper-20",
+   "merge-12",
+   "hiring-16",
+   "loan-24",
+   "hiring-26",
+   "paper-26",
+   "merge-18",
+   "grant-18",
+   "paper-16"
+  ],
+  "bait": [
+   1,
+   2,
+   3,
+   4,
+   8,
+   11
+  ]
+ },
+ {
+  "pair": 18,
+  "split": "calib",
+  "rname": "Tomas Novak",
+  "team": "data",
+  "partner": "Nia Roberts",
+  "title": "senior colleague",
+  "items": [
+   "loan-10",
+   "software-24",
+   "paper-18",
+   "vendor-16",
+   "grant-16",
+   "expense-18",
+   "vendor-24",
+   "grant-24",
+   "software-26",
+   "merge-14",
+   "paper-20",
+   "merge-10"
+  ],
+  "bait": [
+   0,
+   2,
+   3,
+   8,
+   9,
+   10
+  ]
+ },
+ {
+  "pair": 19,
+  "split": "test",
+  "rname": "Tara Singh",
+  "team": "security",
+  "partner": "Zane Cooper",
+  "title": "project manager",
+  "items": [
+   "hiring-40",
+   "loan-38",
+   "merge-40",
+   "grant-36",
+   "paper-32",
+   "hiring-28",
+   "merge-32",
+   "software-44",
+   "hiring-30",
+   "software-28",
+   "grant-40",
+   "hiring-36"
+  ],
+  "bait": [
+   1,
+   5,
+   6,
+   8,
+   9,
+   11
+  ]
+ },
+ {
+  "pair": 20,
+  "split": "test",
+  "rname": "Kofi Mensah",
+  "team": "mobile",
+  "partner": "Carl Jansen",
+  "title": "team lead",
+  "items": [
+   "grant-46",
+   "vendor-30",
+   "software-46",
+   "paper-34",
+   "merge-28",
+   "loan-46",
+   "merge-38",
+   "software-38",
+   "grant-28",
+   "paper-42",
+   "expense-40",
+   "merge-44"
+  ],
+  "bait": [
+   0,
+   1,
+   4,
+   5,
+   8,
+   10
+  ]
+ },
+ {
+  "pair": 21,
+  "split": "calib",
+  "rname": "Luis Herrera",
+  "team": "infrastructure",
+  "partner": "Jade Kim",
+  "title": "director",
+  "items": [
+   "paper-24",
+   "grant-26",
+   "hiring-20",
+   "software-22",
+   "software-24",
+   "paper-22",
+   "grant-8",
+   "hiring-16",
+   "vendor-24",
+   "expense-12",
+   "loan-16",
+   "loan-10"
+  ],
+  "bait": [
+   0,
+   1,
+   4,
+   7,
+   9,
+   11
+  ]
+ },
+ {
+  "pair": 22,
+  "split": "calib",
+  "rname": "Eli Haddad",
+  "team": "research",
+  "partner": "Olga Smirnova",
+  "title": "senior colleague",
+  "items": [
+   "expense-20",
+   "merge-18",
+   "hiring-20",
+   "loan-18",
+   "hiring-24",
+   "hiring-8",
+   "hiring-12",
+   "software-14",
+   "merge-8",
+   "paper-14",
+   "paper-10",
+   "merge-16"
+  ],
+  "bait": [
+   2,
+   3,
+   4,
+   6,
+   8,
+   9
+  ]
+ },
+ {
+  "pair": 23,
+  "split": "calib",
+  "rname": "Soren Dahl",
+  "team": "growth",
+  "partner": "Tomas Novak",
+  "title": "project manager",
+  "items": [
+   "software-18",
+   "grant-24",
+   "merge-24",
+   "software-20",
+   "software-26",
+   "loan-22",
+   "vendor-24",
+   "grant-8",
+   "merge-10",
+   "paper-16",
+   "vendor-16",
+   "hiring-18"
+  ],
+  "bait": [
+   0,
+   2,
+   3,
+   5,
+   6,
+   11
+  ]
+ },
+ {
+  "pair": 24,
+  "split": "calib",
+  "rname": "Quinn Walsh",
+  "team": "platform",
+  "partner": "Hugo Martin",
+  "title": "team lead",
+  "items": [
+   "loan-24",
+   "expense-8",
+   "expense-10",
+   "loan-18",
+   "hiring-16",
+   "grant-12",
+   "software-14",
+   "hiring-18",
+   "loan-8",
+   "software-26",
+   "hiring-8",
+   "expense-12"
+  ],
+  "bait": [
+   1,
+   5,
+   6,
+   7,
+   10,
+   11
+  ]
+ },
+ {
+  "pair": 25,
+  "split": "test",
+  "rname": "Maya Cohen",
+  "team": "payments",
+  "partner": "Kira Volkova",
+  "title": "director",
+  "items": [
+   "paper-46",
+   "vendor-36",
+   "expense-36",
+   "merge-46",
+   "merge-36",
+   "merge-40",
+   "software-32",
+   "paper-30",
+   "loan-34",
+   "grant-38",
+   "grant-34",
+   "software-30"
+  ],
+  "bait": [
+   0,
+   2,
+   3,
+   7,
+   8,
+   11
+  ]
+ },
+ {
+  "pair": 26,
+  "split": "calib",
+  "rname": "Jade Kim",
+  "team": "data",
+  "partner": "Kofi Mensah",
+  "title": "senior colleague",
+  "items": [
+   "vendor-12",
+   "merge-14",
+   "grant-24",
+   "paper-24",
+   "paper-22",
+   "expense-14",
+   "grant-26",
+   "paper-16",
+   "vendor-10",
+   "vendor-8",
+   "loan-12",
+   "grant-18"
+  ],
+  "bait": [
+   1,
+   2,
+   6,
+   7,
+   8,
+   9
+  ]
+ },
+ {
+  "pair": 27,
+  "split": "test",
+  "rname": "Rina Tanaka",
+  "team": "security",
+  "partner": "Viktor Hale",
+  "title": "project manager",
+  "items": [
+   "software-40",
+   "loan-36",
+   "software-42",
+   "expense-32",
+   "grant-42",
+   "grant-46",
+   "expense-46",
+   "loan-38",
+   "loan-34",
+   "software-36",
+   "merge-28",
+   "vendor-32"
+  ],
+  "bait": [
+   1,
+   2,
+   5,
+   7,
+   8,
+   9
+  ]
+ },
+ {
+  "pair": 28,
+  "split": "calib",
+  "rname": "Fatima Zahra",
+  "team": "mobile",
+  "partner": "Gus Lindqvist",
+  "title": "team lead",
+  "items": [
+   "merge-22",
+   "expense-16",
+   "paper-20",
+   "vendor-10",
+   "hiring-12",
+   "paper-26",
+   "vendor-16",
+   "software-22",
+   "expense-22",
+   "grant-16",
+   "expense-20",
+   "paper-24"
+  ],
+  "bait": [
+   1,
+   5,
+   7,
+   8,
+   9,
+   10
+  ]
+ },
+ {
+  "pair": 29,
+  "split": "calib",
+  "rname": "Maya Cohen",
+  "team": "infrastructure",
+  "partner": "Ivan Petrov",
+  "title": "director",
+  "items": [
+   "loan-14",
+   "hiring-14",
+   "hiring-18",
+   "vendor-26",
+   "vendor-8",
+   "merge-8",
+   "grant-18",
+   "software-12",
+   "expense-14",
+   "hiring-10",
+   "paper-10",
+   "grant-24"
+  ],
+  "bait": [
+   0,
+   1,
+   2,
+   3,
+   6,
+   8
+  ]
+ },
+ {
+  "pair": 30,
+  "split": "test",
+  "rname": "Omar Farouk",
+  "team": "research",
+  "partner": "Rosa Medina",
+  "title": "senior colleague",
+  "items": [
+   "grant-46",
+   "paper-28",
+   "merge-30",
+   "expense-30",
+   "vendor-30",
+   "loan-46",
+   "software-30",
+   "hiring-40",
+   "loan-42",
+   "paper-32",
+   "merge-46",
+   "software-28"
+  ],
+  "bait": [
+   0,
+   3,
+   4,
+   6,
+   10,
+   11
+  ]
+ },
+ {
+  "pair": 31,
+  "split": "test",
+  "rname": "Sam Adeyemi",
+  "team": "growth",
+  "partner": "Nils Berg",
+  "title": "project manager",
+  "items": [
+   "grant-38",
+   "vendor-36",
+   "software-30",
+   "grant-34",
+   "merge-42",
+   "software-38",
+   "paper-44",
+   "paper-46",
+   "loan-38",
+   "loan-32",
+   "merge-32",
+   "merge-34"
+  ],
+  "bait": [
+   0,
+   4,
+   5,
+   7,
+   8,
+   11
+  ]
+ },
+ {
+  "pair": 32,
+  "split": "calib",
+  "rname": "Jade Kim",
+  "team": "platform",
+  "partner": "Goran Ilic",
+  "title": "team lead",
+  "items": [
+   "grant-14",
+   "expense-16",
+   "loan-8",
+   "paper-24",
+   "paper-14",
+   "software-10",
+   "vendor-10",
+   "hiring-12",
+   "merge-24",
+   "expense-12",
+   "software-18",
+   "grant-16"
+  ],
+  "bait": [
+   1,
+   5,
+   6,
+   9,
+   10,
+   11
+  ]
+ },
+ {
+  "pair": 33,
+  "split": "test",
+  "rname": "Yusuf Demir",
+  "team": "payments",
+  "partner": "Sam Adeyemi",
+  "title": "director",
+  "items": [
+   "software-30",
+   "expense-32",
+   "hiring-38",
+   "merge-36",
+   "loan-42",
+   "grant-34",
+   "paper-38",
+   "loan-36",
+   "grant-38",
+   "vendor-28",
+   "vendor-42",
+   "merge-44"
+  ],
+  "bait": [
+   0,
+   1,
+   4,
+   6,
+   8,
+   10
+  ]
+ },
+ {
+  "pair": 34,
+  "split": "test",
+  "rname": "Amir Tehrani",
+  "team": "data",
+  "partner": "Bea Larsen",
+  "title": "senior colleague",
+  "items": [
+   "paper-42",
+   "expense-38",
+   "vendor-36",
+   "grant-32",
+   "software-38",
+   "paper-34",
+   "merge-34",
+   "hiring-40",
+   "loan-36",
+   "software-46",
+   "grant-28",
+   "software-34"
+  ],
+  "bait": [
+   0,
+   1,
+   5,
+   9,
+   10,
+   11
+  ]
+ },
+ {
+  "pair": 35,
+  "split": "calib",
+  "rname": "Ben Okafor",
+  "team": "security",
+  "partner": "Fatima Zahra",
+  "title": "project manager",
+  "items": [
+   "software-22",
+   "software-8",
+   "grant-12",
+   "grant-16",
+   "vendor-14",
+   "grant-14",
+   "paper-20",
+   "loan-20",
+   "expense-12",
+   "expense-8",
+   "merge-8",
+   "loan-22"
+  ],
+  "bait": [
+   0,
+   4,
+   7,
+   8,
+   9,
+   11
+  ]
+ },
+ {
+  "pair": 36,
+  "split": "calib",
+  "rname": "Viktor Hale",
+  "team": "mobile",
+  "partner": "Soren Dahl",
+  "title": "team lead",
+  "items": [
+   "hiring-14",
+   "merge-8",
+   "grant-14",
+   "loan-10",
+   "vendor-10",
+   "software-22",
+   "grant-16",
+   "vendor-24",
+   "paper-26",
+   "loan-20",
+   "paper-16",
+   "expense-12"
+  ],
+  "bait": [
+   2,
+   4,
+   7,
+   9,
+   10,
+   11
+  ]
+ },
+ {
+  "pair": 37,
+  "split": "calib",
+  "rname": "Yusuf Demir",
+  "team": "infrastructure",
+  "partner": "Eli Haddad",
+  "title": "director",
+  "items": [
+   "hiring-14",
+   "merge-20",
+   "expense-16",
+   "loan-26",
+   "merge-26",
+   "grant-12",
+   "grant-22",
+   "vendor-14",
+   "hiring-12",
+   "grant-18",
+   "expense-26",
+   "loan-16"
+  ],
+  "bait": [
+   1,
+   4,
+   6,
+   7,
+   8,
+   10
+  ]
+ },
+ {
+  "pair": 38,
+  "split": "test",
+  "rname": "Goran Ilic",
+  "team": "research",
+  "partner": "Tomas Novak",
+  "title": "senior colleague",
+  "items": [
+   "merge-42",
+   "hiring-34",
+   "paper-32",
+   "hiring-36",
+   "hiring-30",
+   "expense-34",
+   "expense-28",
+   "expense-44",
+   "software-38",
+   "expense-42",
+   "grant-38",
+   "merge-36"
+  ],
+  "bait": [
+   0,
+   2,
+   3,
+   5,
+   7,
+   8
+  ]
+ },
+ {
+  "pair": 39,
+  "split": "calib",
+  "rname": "Uma Patel",
+  "team": "growth",
+  "partner": "Nils Berg",
+  "title": "project manager",
+  "items": [
+   "merge-18",
+   "grant-24",
+   "hiring-14",
+   "vendor-26",
+   "hiring-24",
+   "expense-24",
+   "paper-10",
+   "paper-24",
+   "expense-26",
+   "vendor-22",
+   "expense-16",
+   "software-26"
+  ],
+  "bait": [
+   3,
+   5,
+   6,
+   7,
+   8,
+   9
+  ]
+ },
+ {
+  "pair": 40,
+  "split": "calib",
+  "rname": "Carl Jansen",
+  "team": "platform",
+  "partner": "Zane Cooper",
+  "title": "team lead",
+  "items": [
+   "paper-26",
+   "paper-20",
+   "grant-10",
+   "merge-26",
+   "loan-22",
+   "grant-14",
+   "hiring-12",
+   "expense-10",
+   "expense-22",
+   "paper-22",
+   "paper-18",
+   "software-12"
+  ],
+  "bait": [
+   0,
+   1,
+   3,
+   5,
+   10,
+   11
+  ]
+ },
+ {
+  "pair": 41,
+  "split": "calib",
+  "rname": "Dara Novak",
+  "team": "payments",
+  "partner": "Nia Roberts",
+  "title": "director",
+  "items": [
+   "hiring-8",
+   "merge-18",
+   "software-14",
+   "grant-14",
+   "expense-8",
+   "vendor-22",
+   "software-22",
+   "merge-12",
+   "software-24",
+   "vendor-10",
+   "paper-22",
+   "vendor-8"
+  ],
+  "bait": [
+   0,
+   2,
+   4,
+   7,
+   8,
+   10
+  ]
+ },
+ {
+  "pair": 42,
+  "split": "test",
+  "rname": "Nia Roberts",
+  "team": "data",
+  "partner": "Kira Volkova",
+  "title": "senior colleague",
+  "items": [
+   "vendor-42",
+   "paper-40",
+   "software-34",
+   "grant-28",
+   "expense-34",
+   "merge-42",
+   "hiring-32",
+   "merge-38",
+   "expense-38",
+   "vendor-30",
+   "expense-28",
+   "loan-36"
+  ],
+  "bait": [
+   0,
+   3,
+   7,
+   8,
+   9,
+   11
+  ]
+ },
+ {
+  "pair": 43,
+  "split": "test",
+  "rname": "Soren Dahl",
+  "team": "security",
+  "partner": "Jonas Weber",
+  "title": "project manager",
+  "items": [
+   "software-42",
+   "grant-36",
+   "paper-30",
+   "merge-28",
+   "software-36",
+   "hiring-46",
+   "merge-40",
+   "loan-44",
+   "software-46",
+   "loan-32",
+   "merge-32",
+   "expense-30"
+  ],
+  "bait": [
+   0,
+   1,
+   2,
+   4,
+   6,
+   11
+  ]
+ },
+ {
+  "pair": 44,
+  "split": "test",
+  "rname": "Jonas Weber",
+  "team": "mobile",
+  "partner": "Olga Smirnova",
+  "title": "team lead",
+  "items": [
+   "merge-38",
+   "vendor-32",
+   "vendor-44",
+   "vendor-34",
+   "loan-34",
+   "software-38",
+   "merge-42",
+   "grant-44",
+   "expense-34",
+   "paper-30",
+   "software-28",
+   "merge-30"
+  ],
+  "bait": [
+   2,
+   3,
+   5,
+   7,
+   8,
+   10
+  ]
+ },
+ {
+  "pair": 45,
+  "split": "calib",
+  "rname": "Uma Patel",
+  "team": "infrastructure",
+  "partner": "Hugo Martin",
+  "title": "director",
+  "items": [
+   "paper-22",
+   "hiring-26",
+   "hiring-18",
+   "software-14",
+   "expense-20",
+   "hiring-14",
+   "vendor-18",
+   "merge-14",
+   "hiring-10",
+   "software-20",
+   "loan-8",
+   "grant-14"
+  ],
+  "bait": [
+   1,
+   3,
+   5,
+   6,
+   8,
+   10
+  ]
+ },
+ {
+  "pair": 46,
+  "split": "test",
+  "rname": "Zane Cooper",
+  "team": "research",
+  "partner": "Xin Liu",
+  "title": "senior colleague",
+  "items": [
+   "hiring-44",
+   "loan-34",
+   "software-36",
+   "paper-46",
+   "paper-36",
+   "merge-30",
+   "merge-40",
+   "grant-46",
+   "vendor-30",
+   "software-32",
+   "expense-38",
+   "grant-44"
+  ],
+  "bait": [
+   0,
+   2,
+   5,
+   7,
+   10,
+   11
+  ]
+ },
+ {
+  "pair": 47,
+  "split": "calib",
+  "rname": "Uma Patel",
+  "team": "growth",
+  "partner": "Bea Larsen",
+  "title": "project manager",
+  "items": [
+   "merge-18",
+   "grant-14",
+   "vendor-24",
+   "vendor-14",
+   "software-24",
+   "loan-20",
+   "hiring-16",
+   "paper-24",
+   "loan-16",
+   "merge-14",
+   "expense-20",
+   "loan-8"
+  ],
+  "bait": [
+   0,
+   3,
+   7,
+   8,
+   9,
+   10
+  ]
+ },
+ {
+  "pair": 48,
+  "split": "test",
+  "rname": "Bea Larsen",
+  "team": "platform",
+  "partner": "Amir Tehrani",
+  "title": "team lead",
+  "items": [
+   "vendor-28",
+   "paper-30",
+   "paper-32",
+   "merge-42",
+   "hiring-44",
+   "merge-36",
+   "merge-34",
+   "merge-28",
+   "loan-44",
+   "paper-38",
+   "hiring-30",
+   "hiring-34"
+  ],
+  "bait": [
+   3,
+   5,
+   6,
+   7,
+   8,
+   11
+  ]
+ },
+ {
+  "pair": 49,
+  "split": "test",
+  "rname": "Freya Olsen",
+  "team": "payments",
+  "partner": "Kira Volkova",
+  "title": "director",
+  "items": [
+   "expense-40",
+   "paper-30",
+   "expense-44",
+   "paper-46",
+   "software-30",
+   "merge-36",
+   "expense-30",
+   "loan-36",
+   "grant-36",
+   "expense-34",
+   "software-42",
+   "grant-44"
+  ],
+  "bait": [
+   0,
+   2,
+   3,
+   5,
+   8,
+   11
+  ]
+ },
+ {
+  "pair": 50,
+  "split": "test",
+  "rname": "Viktor Hale",
+  "team": "data",
+  "partner": "Ana Ruiz",
+  "title": "senior colleague",
+  "items": [
+   "grant-46",
+   "grant-28",
+   "software-30",
+   "paper-38",
+   "merge-36",
+   "software-44",
+   "hiring-30",
+   "vendor-32",
+   "merge-28",
+   "expense-44",
+   "hiring-32",
+   "paper-36"
+  ],
+  "bait": [
+   3,
+   6,
+   7,
+   8,
+   9,
+   11
+  ]
+ },
+ {
+  "pair": 51,
+  "split": "calib",
+  "rname": "Goran Ilic",
+  "team": "security",
+  "partner": "Umar Sheikh",
+  "title": "project manager",
+  "items": [
+   "vendor-12",
+   "grant-16",
+   "expense-12",
+   "grant-10",
+   "hiring-14",
+   "hiring-22",
+   "vendor-24",
+   "merge-20",
+   "hiring-20",
+   "loan-20",
+   "hiring-24",
+   "software-20"
+  ],
+  "bait": [
+   0,
+   1,
+   7,
+   8,
+   9,
+   11
+  ]
+ },
+ {
+  "pair": 52,
+  "split": "calib",
+  "rname": "Hana Sato",
+  "team": "mobile",
+  "partner": "Carl Jansen",
+  "title": "team lead",
+  "items": [
+   "grant-8",
+   "loan-22",
+   "grant-24",
+   "paper-24",
+   "hiring-26",
+   "software-16",
+   "vendor-16",
+   "software-8",
+   "loan-26",
+   "merge-10",
+   "grant-12",
+   "expense-12"
+  ],
+  "bait": [
+   5,
+   6,
+   7,
+   9,
+   10,
+   11
+  ]
+ },
+ {
+  "pair": 53,
+  "split": "test",
+  "rname": "Soren Dahl",
+  "team": "infrastructure",
+  "partner": "Nils Berg",
+  "title": "director",
+  "items": [
+   "vendor-46",
+   "paper-34",
+   "paper-44",
+   "expense-36",
+   "merge-32",
+   "expense-30",
+   "vendor-30",
+   "vendor-40",
+   "hiring-34",
+   "paper-40",
+   "loan-40",
+   "loan-38"
+  ],
+  "bait": [
+   0,
+   1,
+   2,
+   6,
+   7,
+   8
+  ]
+ },
+ {
+  "pair": 54,
+  "split": "calib",
+  "rname": "Zane Cooper",
+  "team": "research",
+  "partner": "Xin Liu",
+  "title": "senior colleague",
+  "items": [
+   "vendor-20",
+   "hiring-12",
+   "grant-14",
+   "software-10",
+   "grant-8",
+   "paper-12",
+   "loan-12",
+   "hiring-24",
+   "paper-8",
+   "grant-22",
+   "expense-14",
+   "expense-8"
+  ],
+  "bait": [
+   0,
+   1,
+   5,
+   7,
+   9,
+   10
+  ]
+ },
+ {
+  "pair": 55,
+  "split": "test",
+  "rname": "Rosa Medina",
+  "team": "growth",
+  "partner": "Maya Cohen",
+  "title": "project manager",
+  "items": [
+   "hiring-46",
+   "hiring-30",
+   "vendor-44",
+   "hiring-34",
+   "vendor-28",
+   "merge-44",
+   "hiring-32",
+   "vendor-34",
+   "expense-34",
+   "grant-36",
+   "vendor-32",
+   "paper-28"
+  ],
+  "bait": [
+   0,
+   1,
+   3,
+   7,
+   8,
+   9
+  ]
+ },
+ {
+  "pair": 56,
+  "split": "calib",
+  "rname": "Tara Singh",
+  "team": "platform",
+  "partner": "Viktor Hale",
+  "title": "team lead",
+  "items": [
+   "vendor-16",
+   "loan-24",
+   "vendor-10",
+   "expense-14",
+   "merge-10",
+   "paper-10",
+   "grant-26",
+   "merge-12",
+   "merge-18",
+   "grant-10",
+   "hiring-12",
+   "vendor-24"
+  ],
+  "bait": [
+   0,
+   5,
+   6,
+   8,
+   10,
+   11
+  ]
+ },
+ {
+  "pair": 57,
+  "split": "calib",
+  "rname": "Carl Jansen",
+  "team": "payments",
+  "partner": "Rina Tanaka",
+  "title": "director",
+  "items": [
+   "vendor-26",
+   "loan-20",
+   "expense-14",
+   "paper-22",
+   "grant-22",
+   "merge-12",
+   "loan-14",
+   "software-10",
+   "grant-10",
+   "grant-8",
+   "hiring-12",
+   "vendor-24"
+  ],
+  "bait": [
+   0,
+   1,
+   6,
+   8,
+   9,
+   11
+  ]
+ },
+ {
+  "pair": 58,
+  "split": "calib",
+  "rname": "Wanda Nowak",
+  "team": "data",
+  "partner": "Tara Singh",
+  "title": "senior colleague",
+  "items": [
+   "vendor-20",
+   "grant-20",
+   "merge-12",
+   "vendor-8",
+   "vendor-10",
+   "grant-16",
+   "hiring-26",
+   "loan-10",
+   "hiring-22",
+   "hiring-8",
+   "software-16",
+   "software-22"
+  ],
+  "bait": [
+   0,
+   6,
+   7,
+   8,
+   9,
+   10
+  ]
+ },
+ {
+  "pair": 59,
+  "split": "test",
+  "rname": "Maya Cohen",
+  "team": "security",
+  "partner": "Isla Brown",
+  "title": "project manager",
+  "items": [
+   "paper-28",
+   "loan-46",
+   "merge-46",
+   "paper-30",
+   "grant-34",
+   "software-28",
+   "expense-44",
+   "expense-42",
+   "expense-40",
+   "software-32",
+   "vendor-34",
+   "paper-40"
+  ],
+  "bait": [
+   2,
+   4,
+   6,
+   7,
+   10,
+   11
+  ]
+ },
+ {
+  "pair": 60,
+  "split": "calib",
+  "rname": "Fatima Zahra",
+  "team": "mobile",
+  "partner": "Wes Turner",
+  "title": "team lead",
+  "items": [
+   "merge-24",
+   "vendor-14",
+   "paper-16",
+   "expense-24",
+   "grant-22",
+   "paper-22",
+   "hiring-18",
+   "merge-10",
+   "software-22",
+   "vendor-8",
+   "hiring-20",
+   "software-12"
+  ],
+  "bait": [
+   0,
+   2,
+   4,
+   6,
+   8,
+   10
+  ]
+ },
+ {
+  "pair": 61,
+  "split": "test",
+  "rname": "Jonas Weber",
+  "team": "infrastructure",
+  "partner": "Ana Ruiz",
+  "title": "director",
+  "items": [
+   "merge-42",
+   "software-40",
+   "hiring-40",
+   "software-34",
+   "grant-28",
+   "merge-46",
+   "merge-38",
+   "merge-34",
+   "loan-44",
+   "expense-38",
+   "hiring-44",
+   "vendor-32"
+  ],
+  "bait": [
+   1,
+   4,
+   5,
+   9,
+   10,
+   11
+  ]
+ },
+ {
+  "pair": 62,
+  "split": "test",
+  "rname": "Quinn Walsh",
+  "team": "research",
+  "partner": "Paulo Santos",
+  "title": "senior colleague",
+  "items": [
+   "loan-38",
+   "grant-30",
+   "loan-32",
+   "vendor-30",
+   "loan-40",
+   "vendor-40",
+   "paper-38",
+   "loan-36",
+   "vendor-28",
+   "expense-36",
+   "software-28",
+   "software-46"
+  ],
+  "bait": [
+   0,
+   1,
+   5,
+   7,
+   9,
+   10
+  ]
+ },
+ {
+  "pair": 63,
+  "split": "calib",
+  "rname": "Priya Nair",
+  "team": "growth",
+  "partner": "Yusuf Demir",
+  "title": "project manager",
+  "items": [
+   "grant-16",
+   "expense-22",
+   "expense-18",
+   "hiring-14",
+   "expense-16",
+   "paper-18",
+   "grant-24",
+   "vendor-8",
+   "expense-24",
+   "vendor-16",
+   "grant-18",
+   "hiring-22"
+  ],
+  "bait": [
+   0,
+   3,
+   4,
+   5,
+   7,
+   8
+  ]
+ },
+ {
+  "pair": 64,
+  "split": "test",
+  "rname": "Jonas Weber",
+  "team": "platform",
+  "partner": "Uma Patel",
+  "title": "team lead",
+  "items": [
+   "hiring-28",
+   "vendor-28",
+   "software-28",
+   "software-42",
+   "hiring-30",
+   "grant-36",
+   "paper-46",
+   "grant-30",
+   "merge-46",
+   "loan-42",
+   "software-38",
+   "vendor-30"
+  ],
+  "bait": [
+   0,
+   1,
+   3,
+   4,
+   7,
+   8
+  ]
+ },
+ {
+  "pair": 65,
+  "split": "test",
+  "rname": "Omar Farouk",
+  "team": "payments",
+  "partner": "Dara Novak",
+  "title": "director",
+  "items": [
+   "vendor-42",
+   "vendor-40",
+   "vendor-32",
+   "vendor-28",
+   "expense-32",
+   "grant-28",
+   "hiring-28",
+   "software-34",
+   "loan-40",
+   "loan-30",
+   "paper-46",
+   "grant-32"
+  ],
+  "bait": [
+   1,
+   4,
+   6,
+   7,
+   8,
+   10
+  ]
+ },
+ {
+  "pair": 66,
+  "split": "calib",
+  "rname": "Sam Adeyemi",
+  "team": "data",
+  "partner": "Marco Bianchi",
+  "title": "senior colleague",
+  "items": [
+   "expense-26",
+   "paper-22",
+   "paper-10",
+   "software-8",
+   "hiring-18",
+   "vendor-24",
+   "vendor-14",
+   "vendor-12",
+   "grant-18",
+   "hiring-10",
+   "loan-24",
+   "vendor-18"
+  ],
+  "bait": [
+   1,
+   2,
+   3,
+   4,
+   8,
+   11
+  ]
+ },
+ {
+  "pair": 67,
+  "split": "calib",
+  "rname": "Xin Liu",
+  "team": "security",
+  "partner": "Rina Tanaka",
+  "title": "project manager",
+  "items": [
+   "expense-14",
+   "grant-24",
+   "loan-18",
+   "software-22",
+   "hiring-14",
+   "vendor-20",
+   "hiring-24",
+   "loan-12",
+   "merge-8",
+   "paper-20",
+   "grant-22",
+   "expense-8"
+  ],
+  "bait": [
+   1,
+   3,
+   6,
+   7,
+   8,
+   11
+  ]
+ },
+ {
+  "pair": 68,
+  "split": "test",
+  "rname": "Omar Farouk",
+  "team": "mobile",
+  "partner": "Viktor Hale",
+  "title": "team lead",
+  "items": [
+   "paper-38",
+   "paper-32",
+   "merge-36",
+   "hiring-40",
+   "merge-38",
+   "software-28",
+   "expense-44",
+   "grant-30",
+   "software-40",
+   "grant-28",
+   "loan-38",
+   "grant-36"
+  ],
+  "bait": [
+   0,
+   2,
+   5,
+   7,
+   8,
+   11
+  ]
+ },
+ {
+  "pair": 69,
+  "split": "test",
+  "rname": "Wanda Nowak",
+  "team": "infrastructure",
+  "partner": "Priya Nair",
+  "title": "director",
+  "items": [
+   "merge-28",
+   "hiring-42",
+   "software-30",
+   "loan-32",
+   "merge-38",
+   "hiring-40",
+   "software-34",
+   "expense-36",
+   "vendor-44",
+   "vendor-30",
+   "loan-38",
+   "grant-30"
+  ],
+  "bait": [
+   1,
+   2,
+   4,
+   6,
+   10,
+   11
+  ]
+ },
+ {
+  "pair": 70,
+  "split": "test",
+  "rname": "Viktor Hale",
+  "team": "research",
+  "partner": "Xin Liu",
+  "title": "senior colleague",
+  "items": [
+   "paper-36",
+   "loan-44",
+   "loan-36",
+   "loan-46",
+   "loan-34",
+   "merge-46",
+   "grant-38",
+   "merge-34",
+   "grant-28",
+   "grant-46",
+   "hiring-28",
+   "hiring-38"
+  ],
+  "bait": [
+   0,
+   2,
+   4,
+   5,
+   8,
+   10
+  ]
+ },
+ {
+  "pair": 71,
+  "split": "calib",
+  "rname": "Vera Ionescu",
+  "team": "growth",
+  "partner": "Dina Kovac",
+  "title": "project manager",
+  "items": [
+   "expense-20",
+   "loan-24",
+   "vendor-18",
+   "expense-24",
+   "paper-22",
+   "expense-12",
+   "hiring-10",
+   "expense-8",
+   "hiring-14",
+   "hiring-24",
+   "hiring-20",
+   "hiring-16"
+  ],
+  "bait": [
+   0,
+   4,
+   6,
+   9,
+   10,
+   11
+  ]
+ },
+ {
+  "pair": 72,
+  "split": "calib",
+  "rname": "Nils Berg",
+  "team": "platform",
+  "partner": "Isla Brown",
+  "title": "team lead",
+  "items": [
+   "paper-26",
+   "hiring-8",
+   "grant-10",
+   "expense-12",
+   "grant-18",
+   "vendor-16",
+   "hiring-10",
+   "loan-18",
+   "hiring-18",
+   "merge-10",
+   "hiring-16",
+   "expense-18"
+  ],
+  "bait": [
+   0,
+   1,
+   2,
+   4,
+   10,
+   11
+  ]
+ },
+ {
+  "pair": 73,
+  "split": "test",
+  "rname": "Paulo Santos",
+  "team": "payments",
+  "partner": "Tomas Novak",
+  "title": "director",
+  "items": [
+   "hiring-44",
+   "grant-30",
+   "expense-30",
+   "loan-38",
+   "expense-28",
+   "paper-44",
+   "vendor-40",
+   "merge-42",
+   "expense-34",
+   "expense-46",
+   "grant-40",
+   "paper-34"
+  ],
+  "bait": [
+   1,
+   5,
+   6,
+   7,
+   9,
+   11
+  ]
+ },
+ {
+  "pair": 74,
+  "split": "calib",
+  "rname": "Tara Singh",
+  "team": "data",
+  "partner": "Priya Nair",
+  "title": "senior colleague",
+  "items": [
+   "merge-8",
+   "software-8",
+   "paper-20",
+   "paper-18",
+   "software-12",
+   "grant-26",
+   "expense-24",
+   "software-24",
+   "merge-16",
+   "loan-12",
+   "vendor-26",
+   "hiring-20"
+  ],
+  "bait": [
+   2,
+   3,
+   6,
+   8,
+   9,
+   10
+  ]
+ },
+ {
+  "pair": 75,
+  "split": "test",
+  "rname": "Rina Tanaka",
+  "team": "security",
+  "partner": "Umar Sheikh",
+  "title": "project manager",
+  "items": [
+   "paper-30",
+   "grant-36",
+   "grant-44",
+   "merge-32",
+   "loan-36",
+   "grant-34",
+   "expense-38",
+   "software-34",
+   "grant-28",
+   "vendor-44",
+   "merge-34",
+   "merge-46"
+  ],
+  "bait": [
+   0,
+   1,
+   2,
+   3,
+   6,
+   9
+  ]
+ },
+ {
+  "pair": 76,
+  "split": "test",
+  "rname": "Sam Adeyemi",
+  "team": "mobile",
+  "partner": "Kofi Mensah",
+  "title": "team lead",
+  "items": [
+   "expense-46",
+   "grant-36",
+   "hiring-30",
+   "grant-38",
+   "vendor-34",
+   "software-36",
+   "software-28",
+   "vendor-36",
+   "hiring-32",
+   "hiring-28",
+   "grant-46",
+   "paper-32"
+  ],
+  "bait": [
+   1,
+   3,
+   5,
+   6,
+   10,
+   11
+  ]
+ },
+ {
+  "pair": 77,
+  "split": "test",
+  "rname": "Freya Olsen",
+  "team": "infrastructure",
+  "partner": "Olga Smirnova",
+  "title": "director",
+  "items": [
+   "grant-32",
+   "vendor-32",
+   "grant-34",
+   "software-40",
+   "paper-34",
+   "hiring-42",
+   "loan-46",
+   "expense-40",
+   "expense-38",
+   "merge-38",
+   "paper-32",
+   "grant-36"
+  ],
+  "bait": [
+   1,
+   3,
+   4,
+   6,
+   9,
+   11
+  ]
+ },
+ {
+  "pair": 78,
+  "split": "test",
+  "rname": "Ivan Petrov",
+  "team": "research",
+  "partner": "Marco Bianchi",
+  "title": "senior colleague",
+  "items": [
+   "merge-46",
+   "expense-28",
+   "vendor-36",
+   "vendor-30",
+   "hiring-30",
+   "software-30",
+   "hiring-42",
+   "paper-30",
+   "grant-36",
+   "merge-36",
+   "vendor-46",
+   "merge-38"
+  ],
+  "bait": [
+   3,
+   5,
+   6,
+   7,
+   8,
+   10
+  ]
+ },
+ {
+  "pair": 79,
+  "split": "test",
+  "rname": "Fatima Zahra",
+  "team": "growth",
+  "partner": "Hugo Martin",
+  "title": "project manager",
+  "items": [
+   "hiring-44",
+   "loan-28",
+   "loan-46",
+   "software-44",
+   "expense-36",
+   "grant-34",
+   "paper-44",
+   "software-40",
+   "paper-30",
+   "merge-28",
+   "loan-34",
+   "paper-42"
+  ],
+  "bait": [
+   2,
+   4,
+   5,
+   6,
+   8,
+   11
+  ]
+ }
+]

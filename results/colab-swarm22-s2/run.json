@@ -1,0 +1,24 @@
+{
+ "seed": 99300,
+ "n_items": 40,
+ "n_pairs": 80,
+ "smoke": false,
+ "models": [
+  "Qwen/Qwen3-4B",
+  "Qwen/Qwen3-8B",
+  "Qwen/Qwen3-8B"
+ ],
+ "sha": {
+  "honeypot22.py": "b19659f159d056e0",
+  "honeypot.py": "c1cd18c751cb643b",
+  "warg.py": "f0eb06830cc09795",
+  "swarm9.py": "b2ade916163cc09a"
+ },
+ "card_sha": "5cb120b7f3033a7d37346c32a420ed9ab8a93892277d97a7c170422266186b1f",
+ "dropped_overlap": 0,
+ "pool": {
+  "calib": 80,
+  "test": 80
+ },
+ "K5_fixtures": true
+}
