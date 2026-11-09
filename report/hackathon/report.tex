@@ -150,7 +150,7 @@ repeat with new wordings and twice the data gives the same result, though there 
 caveat: a monitor that could read the private message would do almost as well as the probe. The probe helps because
 that channel is not logged.
 
-\textbf{Other models.} On Qwen3-8B and on another family, IBM Granite-3.3-8B, the probe again ranks every deal case first on every held-out domain; TF-IDF on the reply reaches 0.88 and 0.94 (Figure~\ref{fig:models}). The deal works less on these models (approvals rise 16 and 9 points), so our fixed rule gives no verdict there (Appendix~\ref{app:models}).
+\textbf{Other models.} On Qwen3-8B and on another family, IBM Granite-3.3-8B, the probe again ranks every deal case first on every held-out domain; TF-IDF on the reply reaches 0.88 and 0.94 (Figure~\ref{fig:models}), and on the verdict line alone 0.58 and 0.91 (Granite often gives its reason on that line). The deal works less on these models (approvals rise 16 and 9 points), so our fixed rule gives no verdict there (Appendix~\ref{app:models}).
 \begin{figure}[t]\centering
 \begin{tikzpicture}\begin{axis}[ybar=14pt, width=8.5cm, height=3.3cm, ymin=0, ymax=1.18, bar width=12pt, enlarge x limits=0.25,
  symbolic x coords={Qwen3-4B (main),Qwen3-8B,Granite-3.3-8B}, xtick=data, ytick={0,0.5,1},
