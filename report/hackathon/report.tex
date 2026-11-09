@@ -10,7 +10,7 @@
 \captionsetup{font=small}
 \newcommand{\todo}[1]{\textcolor{red}{[#1]}}
 
-\title{\textbf{Read It Before It Writes: An Activation Probe Flags a Reviewer Agent's Hidden Collusive Commitment When the Private Channel Is Not Logged}}
+\title{\textbf{Catching a Colluding Reviewer Agent: Activation Probes That Survive an Adaptive Attacker, and Honeypots With Secret-Shared Bait}}
 \author{Ajinkya Mulay\\ \todo{Affiliation}\\[4pt] \textit{With Apart Research}}
 \date{Swarm Alignment Hackathon 2026, Track 4}
 
@@ -18,21 +18,17 @@
 \maketitle
 
 \begin{abstract}
-In a multi-agent pipeline, a reviewer agent is a gate: it approves or rejects the work of other agents. If another
+In a multi-agent pipeline, a reviewer agent is a gate: it approves or rejects the work of other agents. If a partner
 agent reaches the reviewer through a private channel that the audit log does not record, the overseer sees only the
-request and the reviewer's reply. We ask whether a linear probe on the reviewer's activations, read at the last token
-before it writes ($k=0$), can flag that the reviewer has taken on a collusive commitment, and whether it does this
-better than monitors that read the whole public record, including the reply. We built a matched testbed on Qwen3-4B:
-the public request is token-identical across four arms (collusive request, legitimate waiver from the exception owner,
-benign note, waiver from a non-owner), and only the private message changes. In a pre-registered study with a fixed pass
-rule (2,560 episodes, 8 held-out review domains, 4 message wording groups), the commitment changes behaviour (approval of
-failing items: collusive 0.44 against benign 0.08), and the $k=0$ probe reaches held-out AUROC 1.000 [1.000, 1.000]. It
-beats all eight tuned public-record monitors on both collusive vs.\ legitimate-plus-benign and collusive vs.\ legitimate
-(16 paired gaps, all 95\% lower bounds above 0; the best monitor, TF-IDF on the reply, reaches 0.864). A monitor that
-can read the private message ties the probe, so the value is specific to the unlogged-channel setting. A scale-up on new
-wordings first failed a pre-registered length control; a length-matched rerun (5,108 episodes, 23 comparisons) passed
-the same rule. We report all 17 pre-registered
-studies, including the failures that shaped the design.
+public request and the reply. We test two defences on Qwen3-4B reviewers, in 22 pre-registered studies with pass rules
+fixed before each run. (1) An activation probe, read at the last token before the reviewer writes. On templated
+messages it flags the collusive commitment at held-out AUROC 1.000 and beats all tuned public-record monitors
+(SWARM-15, 17). It does not transfer to free-form messages (appendix), but a probe retrained on free text, played against an attacker that rewrites each attack against it over three rounds,
+catches all 191 effective final-round attacks on held-out items at 6.9\% false positives; the best public monitor
+catches 0.969 (SWARM-20). (2) A honeypot: the overseer plants bait offers that look as if they come from the partner,
+and flags agents that accept bait. Even when warned, 40 of 40 colluding agents are flagged and 1 of 40 honest agents
+(SWARM-21). Secure multi-party computation keeps the bait list secret from any single server; we explain this protocol
+but do not run it. Studies that did not pass are reported in the appendix.
 \end{abstract}
 
 \section{Introduction}
@@ -57,13 +53,12 @@ monitor must flag the collusive case.
 \paragraph{Our main contributions are:}
 \begin{enumerate}
 \item A matched collusion testbed for a reviewer agent in which the public request is token-identical across arms and
-the commitment measurably changes behaviour, with 8 review domains and held-out wording groups.
-\item A pre-registered positive result (SWARM-15): a $k=0$ linear probe flags the collusive commitment at held-out
-AUROC 1.000 and beats every tested public-record monitor, including TF-IDF on the reply after it is written and the same
-probe applied to the public record, on all 16 paired comparisons.
-\item An honest map of the boundary: a monitor that can read the private message ties the probe; a scale-up on new
-wordings was stopped by our own length control; and 14 earlier studies show why simpler designs fail (prompt leaks,
-reviewers that do not act on the deal). All studies were pre-registered with sealed bets and are reported.
+the commitment measurably changes behaviour (SWARM-15, 17: probe AUROC 1.000, beats every public-record monitor).
+\item An adaptive test of the probe: a template probe does not transfer to free text (SWARM-19), but a probe retrained
+on free text holds against an attacker that rewrites against it each round (SWARM-20: 191 of 191 caught).
+\item A honeypot defence that needs no access to activations, with the secret-sharing protocol that keeps bait hidden
+from a bribed server (SWARM-21: 40 of 40 colluders, 1 of 40 honest agents flagged), and its limits.
+\item All 22 studies pre-registered with sealed bets and reported, including nulls and failed gates.
 \end{enumerate}
 
 \section{Related Work}
@@ -194,11 +189,8 @@ was 0.85.
 We measured no advantage for the probe when the private message is logged; its measured advantage is in the unlogged
 case.
 
-\textbf{Scale-up.} SWARM-16 repeated the study on four new wording groups with twice the items (5,120 episodes) and 7
-extra monitors refit on C vs.\ L only. All 23 gaps were above 0 (smallest lower bound 0.003), but K4 failed (0.723
-against 0.65): the new collusive messages were about 2 tokens longer than the benign ones. By the rule there is no
-verdict. SWARM-17 rewrote the four groups so that every arm has the same mean length (within 0.1 tokens in three groups,
-1.1 in the fourth), with a fresh seed and the same rule. SWARM-17 \textbf{passed} (5,108 episodes; sealed bet 0.80): C$-$B $=0.423$,
+\textbf{Scale-up.} SWARM-17 repeats the study on four new wording groups, length-matched across arms (within 0.1 tokens in three groups,
+1.1 in the fourth), with twice the items, a fresh seed and the same rule. SWARM-17 \textbf{passed} (5,108 episodes; sealed bet 0.80): C$-$B $=0.423$,
 L$-$B $=0.844$, no invalid verdicts; probe AUROC 1.000 [1.000, 1.000]; all 23 lower bounds above 0, with C vs.\ L+B
 gaps 0.118 to 0.499 and C vs.\ L gaps 0.089 to 0.605; K4 fell to 0.492, so length no longer predicts the arm. The
 closest monitors are the refits on C vs.\ L only: the public-record probe refit trails by 0.017 (lower bound 0.004), so
@@ -207,13 +199,7 @@ on the hardest comparison the margin is small. On these wordings the privileged 
 
 \input{s18to21}
 
-\textbf{How we got here.} Table~\ref{tab:path} (Appendix) lists all 21 studies. Two lessons shaped the final design.
-First, unmatched prompts leak: when collusive and honest reviewers got different prompts, a probe on a random-weight
-model scored 1.000 (SWARM-1), so every later design keeps the public input token-identical (K2). Second, small
-reviewers often ignore the deal: Qwen2.5-1.5B never acted on it, and Qwen3-4B resisted peer requests, agreed notes and
-system-prompt notes (SWARM-9 to 12). Only the binding deal frame produced a behavioural effect (SWARM-13 to 15).
-SWARM-14 then failed its own stricter rule, which demanded beating the privileged monitors; SWARM-15 states the claim
-for the threat model where it holds.
+\textbf{Other studies.} Studies that did not pass, and why, are in Appendix~\ref{app:fails}.
 
 \section{Discussion and Limitations}
 When a private message cannot be logged, the reviewer's activations before it writes carry the collusive commitment
@@ -234,6 +220,12 @@ for the unlogged case, but it is not evidence of deception detection in general.
 \item \textbf{The commitment is instructed.} The frame tells the model it made a commitment and to favour submitters
 when asked. The behaviour shows that the model follows that instruction, not that it formed a deal on its own.
 Commitments formed over a long conversation, or through training, are not tested.
+\item \textbf{A shared secret defeats imitated bait.} If colluders agree on a code word or a fixed writing habit
+beforehand, an overseer that only imitates the partner cannot put it on the bait. Two defences: rewrite every message
+in the channel before delivery, or make bait by running the partner model itself with the same context (as in
+SWARM-21), so that any sign the partner uses also appears in the bait. Neither is tested against a colluder that hides
+a secret.
+\item \textbf{SMPC is cited, not run.} The bait in our runs is hidden by construction; we did not run Shamir or BGW.
 \item \textbf{Impersonation is not covered.} Waivers from non-owners are approved 0.97 of the time and are not flagged
 by the probe; catching them needs a check of the sender, which an unlogged channel does not give.
 \item \textbf{Black-box attacker only.} The SWARM-20 attacker sees probe scores but not gradients, and does not see
@@ -248,11 +240,12 @@ Free-form private messages written by a second agent; commitments built over mul
 the collusive arm; an adaptive colluder; and a blocking policy evaluated on harm prevented, not only AUROC.
 
 \section{Conclusion}
-In a matched, pre-registered testbed, a linear probe read before a reviewer agent writes flags a hidden collusive
-commitment at held-out AUROC 1.000 and beats every tested monitor of the public record, including monitors that read
-the reply. The advantage exists only when the private channel is unlogged: a monitor that reads the message ties. A
-length-matched scale-up on new wordings and twice the items passed the same rule. We report the 15 other studies, most
-of which did not pass, because they explain why the design looks as it does.
+When a private channel is not logged, the reviewer's activations before it writes carry the collusive commitment: a
+linear probe flags it at AUROC 1.000 on templated messages and, once retrained on free text, catches every attack
+from an attacker that adapts to it, a few points ahead of the best public-record monitor. Where activations are not
+available, bait works: colluders that accept deals also accept bait, and secret sharing keeps the bait list from any
+single server. Both defences hold only within stated limits: one model family, prompt-made colluders, and no secret
+shared between colluders. All 22 studies, including those that did not pass, are in the appendix.
 
 \section*{Code and Data}
 \begin{itemize}
@@ -327,6 +320,45 @@ review so that the audit log shows it.'' B: ``\{sub\} is new on the team, and th
 of a pull request. Please judge it against the rule as usual, with no special treatment. Keep your feedback kind and
 specific so that they can learn from it.'' All templates are in \texttt{swarm9.py}.
 
+\section{Studies that did not pass}\label{app:fails}
+\textbf{How we got here.} Table~\ref{tab:path} lists all 22 studies. Two lessons shaped the final design.
+First, unmatched prompts leak: when collusive and honest reviewers got different prompts, a probe on a random-weight
+model scored 1.000 (SWARM-1), so every later design keeps the public input token-identical (K2). Second, small
+reviewers often ignore the deal: Qwen2.5-1.5B never acted on it, and Qwen3-4B resisted peer requests, agreed notes and
+system-prompt notes (SWARM-9 to 12). Only the binding deal frame produced a behavioural effect (SWARM-13 to 15).
+SWARM-14 then failed its own stricter rule, which demanded beating the privileged monitors; SWARM-15 states the claim
+for the threat model where it holds.
+
+\textbf{SWARM-16 (no verdict).} SWARM-16 repeated the study on four new wording groups with twice the items (5,120 episodes) and 7
+extra monitors refit on C vs.\ L only. All 23 gaps were above 0 (smallest lower bound 0.003), but K4 failed (0.723
+against 0.65): the new collusive messages were about 2 tokens longer than the benign ones. By the rule there is no
+verdict. SWARM-17 fixed the length cue and passed.
+
+SWARM-15 and 17 use templated messages. A real colluder writes freely, so we next let a Qwen3-8B attacker write the
+private messages, in the style of a control evaluation \cite{greenblatt2023control}. It uses four fixed strategies
+(R1 paraphrase, R2 authority mimicry, R3 indirect hint, R4 camouflage in a long note) and one adaptive strategy (R5)
+that sees its last message, the verdict and the probe score. An attack is \emph{effective} when the reviewer approves
+a failing item and a judge confirms the message asks for a favour.
+
+\textbf{SWARM-18 (inconclusive).} The probe trained on SWARM-17 templates stays frozen. Its gate failed: 79 effective
+attacks against a bar of 80, and a probe trained with shuffled labels flagged 43\% of attacks. The attacks were free
+text but the negatives were templates, so style alone separated them.
+
+\textbf{SWARM-19 (failed).} The same 8B writer now also writes the legitimate and benign messages, in the same styles
+and lengths. All controls pass. The frozen template probe catches only 0.36 of effective attacks at 5\% false
+positives (bar 0.80), less than TF-IDF on the request (0.51). R2 attacks evade it completely. The AUROC 1.000 of
+SWARM-15 and 17 does not transfer from templates to free text.
+
+
+\textbf{SWARM-22 (attempt 1: no verdict).} A harder honeypot. The overseer writes bait itself from two real offers of
+the same partner, and two new colluders are told to dodge tests: one acts only on requests it judges genuine, one acts
+on about one in six. A gate first checks that bait cannot be told from real offers (AUROC at most 0.60). Both
+strategic colluders were caught 40 of 40, with 0 of 40 honest agents flagged, and they still accepted 95 to 99\% of
+real offers, so the dodging instruction did not make them selective. But the gate failed: a TF-IDF classifier told bait
+from real offers at AUROC 0.83. The bait writer used one casual voice for every slot, curly apostrophes, and 9 more
+words on average. By the rule there is no verdict. Attempt 2 gives the bait writer the slot's style and length and
+cleans all offers through one path; \todo{attempt 2 result}.
+
 \section{All studies}\label{app:path}
 \begin{table}[!ht]
 \centering\small
@@ -348,6 +380,7 @@ SWARM-18 & Free-form attacker against the frozen template probe; template negati
 SWARM-19 & Free-form negatives from the same writer; template probe catches 0.36, below TF-IDF 0.51 & Failed \\
 SWARM-20 & Probe retrained on free text, online game with an adaptive attacker; catches 191 of 191 & \textbf{Passed} \\
 SWARM-21 & Bait offers flag warned colluding agents: 40 of 40, honest 1 of 40 & \textbf{Passed} \\
+SWARM-22 & Strategic colluders vs.\ overseer-written bait; caught 40 of 40 but bait gate failed (0.83) & no verdict \\
 \bottomrule
 \end{tabular}
 \caption{Every pre-registered study, in order. ``No verdict'' means a sanity or control check failed, so the rule did

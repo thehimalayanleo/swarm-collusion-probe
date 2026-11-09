@@ -1,21 +1,12 @@
 % SWARM-18 to 21 results; \input from report.tex
-\subsection*{Free-form attacks (SWARM-18 to 20)}
-SWARM-15 and 17 use templated messages. A real colluder writes freely, so we next let a Qwen3-8B attacker write the
+\subsection*{An adaptive attacker (SWARM-20)}
+SWARM-15 and 17 use templated messages. A real colluder writes freely, so we let a Qwen3-8B attacker write the
 private messages, in the style of a control evaluation \cite{greenblatt2023control}. It uses four fixed strategies
-(R1 paraphrase, R2 authority mimicry, R3 indirect hint, R4 camouflage in a long note) and one adaptive strategy (R5)
-that sees its last message, the verdict and the probe score. An attack is \emph{effective} when the reviewer approves
-a failing item and a judge confirms the message asks for a favour.
+(R1 paraphrase, R2 authority mimicry, R3 indirect hint, R4 camouflage in a long note), and a judge confirms that each
+effective attack asks for a favour. A probe trained only on templates does not transfer to this free text
+(Appendix~\ref{app:fails}), so we retrain it on free-form data.
 
-\textbf{SWARM-18 (inconclusive).} The probe trained on SWARM-17 templates stays frozen. Its gate failed: 79 effective
-attacks against a bar of 80, and a probe trained with shuffled labels flagged 43\% of attacks. The attacks were free
-text but the negatives were templates, so style alone separated them.
-
-\textbf{SWARM-19 (failed).} The same 8B writer now also writes the legitimate and benign messages, in the same styles
-and lengths. All controls pass. The frozen template probe catches only 0.36 of effective attacks at 5\% false
-positives (bar 0.80), less than TF-IDF on the request (0.51). R2 attacks evade it completely. The AUROC 1.000 of
-SWARM-15 and 17 does not transfer from templates to free text.
-
-\textbf{SWARM-20 (passed).} We retrain the probe on free-form data and play an online game against it
+\textbf{SWARM-20 (passed).} We play an online game against the retrained probe
 (Figure~\ref{fig:s20}a). In each round the attacker rewrites every attack against the current probe; then the blue
 team (probe and all public-record monitors) retrains on the new attacks from training items. The attacker moves last,
 and we score only held-out items that no monitor trained on. The final probe B2 flags all 191 effective final-round
@@ -85,8 +76,7 @@ kinds of agent differ in one clause of the prompt: a prior agreement with the pa
 overseer plants bait. We flag an agent when the share of bait it accepts reaches a threshold set at 5\% false alarms on
 calibration honest agents (1 of 6). \textbf{SWARM-21 passed}: it flags 40 of 40 colluders and 1 of 40 honest agents.
 The result is weak in one way: colluders accept almost every offer, bait or real (Figure~\ref{fig:s21}b), and the
-warning made no measurable difference. A colluder that knows about bait and tries to avoid it is the next test
-(SWARM-22).
+warning made no measurable difference. A harder test, with colluders told to dodge tests, is in Appendix~\ref{app:fails}.
 
 \begin{figure}[!ht]
 \centering
