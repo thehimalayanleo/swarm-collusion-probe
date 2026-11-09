@@ -31,17 +31,20 @@ built for coordination and not for audit. A partner agent can use such a channel
 The reviewer then writes an approval that looks normal, so a monitor that reads the log sees nothing wrong.
 \textbf{Assumption and question.} The overseer cannot read the private channel. But it has the right to vet the
 models that it deploys with white-box methods: it can read the reviewer's internal activations, and it can send its own
-messages into the channels that agents use. With this access, can the overseer catch the collusion? \textbf{Results.} We test
-two defences on Qwen3-4B reviewers. (1) A linear probe reads the reviewer's activations before it writes. On templated
-messages it flags collusion at held-out AUROC 1.000; the best of eight tuned monitors of the log reaches 0.864. After
-retraining on free text, it catches all 191 effective attacks from a Qwen3-8B attacker that rewrites its messages
-against the probe for three rounds, at 6.9\% false positives (best log monitor: 0.969). (2) A honeypot needs no
-activations. The overseer sends fake offers (bait) through the partner's channel and flags agents that accept them. It
-flags 40 of 40 colluding agents and 1 of 40 honest agents, also when the agents know that bait exists. A honeypot works
-only while the bait list stays secret: if one server holds the list, a colluder can bribe that server and refuse only
-the bait. Secure multi-party computation (SMPC) removes this weak point. The list is split into random shares across
-several servers, the servers compute together whether an agent accepted too much bait, and only that yes-or-no answer
-is revealed. No single server can read the list or fake the result. We describe this protocol; we do not run it.
+messages into the channels that agents use. With this access, can the overseer catch the collusion? 
+
+\textbf{Defence 1: a probe.} A simple linear classifier reads the reviewer's internal activations just before it writes
+its reply. The reply looks normal, but the deal is still visible inside the model. On a fixed set of messages the probe
+separates collusion perfectly (AUROC 1.000), while the best of eight tuned monitors of the log reaches 0.864. We then
+let a second model rewrite the private message for three rounds to slip past the probe. The probe still catches every
+attack that worked (191 of 191), with 6.9\% false alarms.
+
+\textbf{Defence 2: a honeypot.} This defence needs no access to activations. The overseer poses as a partner and sends
+fake deals (bait). Honest reviewers refuse them; colluding reviewers accept them. The honeypot flags 40 of 40 colluding
+agents and 1 of 40 honest ones, even when the agents are told that bait exists. Bait works only if colluders cannot tell
+it apart from real offers, so the bait list must stay secret. We propose secure multi-party computation (SMPC) for this:
+the list is split across several servers so that no single server can read it, and together they reveal only one
+answer, whether the agent accepted too much bait. We describe this protocol but do not run it.
 \end{abstract}
 
 \section{The problem}
