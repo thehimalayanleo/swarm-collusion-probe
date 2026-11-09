@@ -490,13 +490,17 @@ negatives were templates.
 frozen template probe catches only 0.36 of effective attacks at 5\% false positives (bar 0.80), less than TF-IDF on
 the request (0.51). Authority-mimicry attacks evade it completely.
 
-\textbf{SWARM-22 (attempt 1: no verdict).} A harder honeypot. The overseer writes bait itself from two real offers of
+\textbf{SWARM-22 (no verdict after two attempts).} A harder honeypot. The overseer writes bait itself from two real offers of
 the same partner, and two new colluders are told to dodge tests: one acts only on requests it judges genuine, one acts
 on about one in six. A gate first checks that bait cannot be told from real offers (AUROC at most 0.60). Both
 strategic colluders were caught 40 of 40, with 0 of 40 honest agents flagged, and they still accepted 95 to 99\% of
 real offers. But the gate failed: TF-IDF told bait from real offers at AUROC 0.83, because the bait writer used one
 casual voice, curly apostrophes and 9 more words on average. Attempt 2 gives the bait writer the slot's style and
-length and cleans all offers through one path; \todo{attempt 2 result pending}.
+length and cleans all offers through one path. Attempt 2 also gives no verdict: lengths now match (73 vs.\ 75 words),
+but TF-IDF still tells bait from real offers at AUROC 0.81 (upper bound 0.84). Real offers name concrete details
+(``tests'', ``waiver'', ``discrepancy''); bait uses vaguer words (``concern'', ``key initiatives'', ``aligned''). The
+catch rates (40 of 40 for both strategies, 3 of 40 honest agents flagged) are not evidence, since the gate failed.
+Writing bait that matches the partner's concrete details is open.
 
 \begin{table}[!ht]
 \centering\small
@@ -518,7 +522,7 @@ SWARM-18 & Free-text attacker vs.\ frozen template probe; template negatives let
 SWARM-19 & Free-text negatives from the same writer; template probe 0.36, below TF-IDF 0.51 & Failed \\
 SWARM-20 & Probe retrained on free text, online game with an adaptive attacker; 191 of 191 & \textbf{Passed} \\
 SWARM-21 & Bait flags warned colluders 40 of 40, honest 1 of 40 & \textbf{Passed} \\
-SWARM-22 & Strategic colluders vs.\ overseer-written bait; caught 40 of 40 but bait gate failed (0.83) & no verdict \\
+SWARM-22 & Strategic colluders vs.\ overseer-written bait; caught 40 of 40 but bait gate failed twice (0.83, 0.81) & no verdict \\
 \bottomrule
 \end{tabular}
 \caption{Every pre-registered study, in order. ``No verdict'' means a control failed, so the rule did not allow a
@@ -531,7 +535,7 @@ verdict. Cards, bets and logs are in the repository.}
 \item SWARM-15: \nolinkurl{results/5090-swarm15-s3/s4-score.json}; Table~\ref{tab:p2}.
 \item SWARM-16, 17: \nolinkurl{results/5090-swarm16-s3/s4-score.json},\\ \nolinkurl{results/5090-swarm17-s3/s4-score.json}.
 \item SWARM-19 to 22: \nolinkurl{results/colab-swarm19-s3/score.json}, \nolinkurl{results/colab-swarm20-s3/score.json},
-\nolinkurl{results/colab-swarm21-s2b/score.json},\\ \nolinkurl{results/colab-swarm22-s2/score.json}. Figures~\ref{fig:main} and~\ref{fig:adv}: \nolinkurl{figdata.tex}, written from those files by \nolinkurl{report/hackathon/fig_s20_s21.py}.
+\nolinkurl{results/colab-swarm21-s2b/score.json},\\ \nolinkurl{results/colab-swarm22-s2/score.json},\\ \nolinkurl{results/colab-swarm22-s2b/score.json}. Figures~\ref{fig:main} and~\ref{fig:adv}: \nolinkurl{figdata.tex}, written from those files by \nolinkurl{report/hackathon/fig_s20_s21.py}.
 \item Earlier studies: their cards and \nolinkurl{report/REPORT-draft.md}.
 \end{itemize}
 
