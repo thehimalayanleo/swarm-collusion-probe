@@ -152,12 +152,13 @@ that channel is not logged.
 
 \textbf{Other models.} On Qwen3-8B and on another family, IBM Granite-3.3-8B, the probe again ranks every deal case first on every held-out domain; TF-IDF on the reply reaches 0.88 and 0.94 (Figure~\ref{fig:models}), and on the verdict line alone 0.58 and 0.91 (Granite often gives its reason on that line). The deal works less on these models (approvals rise 16 and 9 points), so our fixed rule gives no verdict there (Appendix~\ref{app:models}).
 \begin{figure}[t]\centering
-\begin{tikzpicture}\begin{axis}[ybar=14pt, width=8.5cm, height=3.3cm, ymin=0, ymax=1.18, bar width=12pt, enlarge x limits=0.25,
+\begin{tikzpicture}\begin{axis}[ybar=3pt, width=9.5cm, height=3.3cm, ymin=0, ymax=1.18, bar width=10pt, enlarge x limits=0.22,
  symbolic x coords={Qwen3-4B (main),Qwen3-8B,Granite-3.3-8B}, xtick=data, ytick={0,0.5,1},
  nodes near coords, every node near coord/.append style={font=\scriptsize, /pgf/number format/.cd, fixed, precision=3, fixed zerofill},
- legend style={at={(0.5,1.02)}, anchor=south, legend columns=2, font=\footnotesize, draw=none}, tick label style={font=\footnotesize}]
+ legend style={at={(0.5,1.02)}, anchor=south, legend columns=3, font=\scriptsize, draw=none}, tick label style={font=\footnotesize}]
 \addplot[fill=blue!55, draw=none] coordinates {(Qwen3-4B (main),1.000) (Qwen3-8B,1.000) (Granite-3.3-8B,1.000)}; \addlegendentry{Probe (before reply)}
 \addplot[fill=orange!65, draw=none] coordinates {(Qwen3-4B (main),0.864) (Qwen3-8B,0.879) (Granite-3.3-8B,0.941)}; \addlegendentry{TF-IDF on reply (log)}
+\addplot[fill=gray!45, draw=none] coordinates {(Qwen3-4B (main),0.131) (Qwen3-8B,0.582) (Granite-3.3-8B,0.911)}; \addlegendentry{TF-IDF, verdict line only}
 \end{axis}\end{tikzpicture}
 \caption{Three reviewer models, held-out domains: the probe finds the deal on all three. On the 8B models the deal is weak, so these are secondary measures.}\label{fig:models}
 \end{figure}
