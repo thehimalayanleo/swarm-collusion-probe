@@ -165,9 +165,9 @@ def score(out):
     # gate on test-pair offers
     T = [o for o in O if split[o["pair"]] == "test"]
     y = np.array([int(o["bait"]) for o in T]); g = np.array([o["pair"] for o in T])
-    ug = sorted(set(g)); fold = {q: i % 5 for i, q in enumerate(rng.permutation(ug))}
+    ug = sorted(set(g)); nf = min(5, len(ug)); fold = {q: i % nf for i, q in enumerate(rng.permutation(ug))}
     s1 = np.zeros(len(T))
-    for f in range(5):
+    for f in range(nf):
         tr = np.array([fold[q] != f for q in g]); te = ~tr
         vw, vc = TfidfVectorizer(ngram_range=(1, 2), min_df=2), TfidfVectorizer(analyzer="char_wb", ngram_range=(2, 5), min_df=2)
         txt = [o["msg"] for o in T]
