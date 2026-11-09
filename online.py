@@ -29,8 +29,9 @@ def run(out, seed, n, t17, s19, smoke=False):
     os.makedirs(out, exist_ok=True)
     rev, att, jud = (w.SMOKE,) * 3 if smoke else (w.REVIEWER, w.ATTACKER, w.JUDGE)
     its, dropped = items(seed, n)
-    for f in {it["family"] for it in its}:  # pool (even) and held-out (odd) by rank among a family's test items
-        tk = sorted((it for it in its if it["family"] == f and it["split"] == "test"), key=lambda it: it["k"])
+    for f, fl in {(it["family"], it["fail"]) for it in its}:  # M1: pool (even) and held-out (odd) by rank among a
+        # family's targets (and, apart, its passing test items); the generator alternates failing and passing items
+        tk = sorted((it for it in its if it["family"] == f and it["fail"] == fl and it["split"] == "test"), key=lambda it: it["k"])
         for j, it in enumerate(tk):
             it["role"] = "pool" if j % 2 == 0 else "held"
     by = {it["item"]: it for it in its}
@@ -89,6 +90,8 @@ def run(out, seed, n, t17, s19, smoke=False):
 
     def keep(cands, B):
         """Per thread: lowest probe score under B among effective candidates so far, else the last."""
+        if not cands:
+            return {}
         for e, s in zip(cands, pp(B, stack(cands, 0))):
             e["pscore"] = float(s)
         best, last = {}, {}
