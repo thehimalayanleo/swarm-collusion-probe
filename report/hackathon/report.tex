@@ -184,7 +184,8 @@ attack against the current probe, using paraphrase, authority mimicry, indirect 
 retrain on attacks from training items. The attacker moves last, and we score only held-out items. The final probe
 flags all 191 effective final-round attacks on 112 held-out items, at 6.9\% false positives
 (Figure~\ref{fig:adv}a). The margin is small: the best log monitor flags 0.969 (gap 0.031,
-interval 0.005 to 0.043), and the first probe already flagged 0.995, so the attacker never found a gap.
+interval 0.005 to 0.043), and the first probe already flagged 0.995, so the attacker never found a gap. But that 0.969 needs the reviewer to explain itself: post hoc, with only the
+reply's verdict line kept, the best log monitor flags 0.13, while the probe flags 1.00 before the reply exists.
 
 
 \subsection{A honeypot catches colluders without activations}
@@ -293,7 +294,7 @@ accept bait as often as real offers; honest agents accept almost none.}
 \textbf{Limitations.} We test one model family, and the collusion is set by a prompt, not formed by the agent
 or by training. The probe likely reads the message itself: a text monitor on the private message ties it, and waivers
 from non-owners (approved 0.97 of the time) are not caught. On free text the margin over log monitors is about 3
-points, and the attacker saw probe scores, not gradients. The honeypot test is easy (colluders accept almost every offer, Figure~\ref{fig:adv}b), colluders that share a secret code
+points, and the attacker saw probe scores, not gradients. The honeypot test is easy (colluders accept almost every offer), colluders that share a secret code
 could tell bait apart, and SMPC is cited, not run; a harder test with strategic colluders is in
 Appendix~\ref{app:fails}.
 
@@ -535,7 +536,7 @@ verdict. Cards, bets and logs are in the repository.}
 \item SWARM-15: \nolinkurl{results/5090-swarm15-s3/s4-score.json}; Table~\ref{tab:p2}.
 \item SWARM-16, 17: \nolinkurl{results/5090-swarm16-s3/s4-score.json},\\ \nolinkurl{results/5090-swarm17-s3/s4-score.json}.
 \item SWARM-19 to 22: \nolinkurl{results/colab-swarm19-s3/score.json}, \nolinkurl{results/colab-swarm20-s3/score.json},
-\nolinkurl{results/colab-swarm21-s2b/score.json},\\ \nolinkurl{results/colab-swarm22-s2/score.json},\\ \nolinkurl{results/colab-swarm22-s2b/score.json}. Figures~\ref{fig:main} and~\ref{fig:adv}: \nolinkurl{figdata.tex}, written from those files by \nolinkurl{report/hackathon/fig_s20_s21.py}.
+\nolinkurl{results/colab-swarm21-s2b/score.json},\\ \nolinkurl{results/colab-swarm22-s2/score.json},\\ \nolinkurl{results/colab-swarm22-s2b/score.json},\\ \nolinkurl{results/colab-swarm20-s3/swarm23.json} (verdict-line test, \nolinkurl{tfidf_reply_test.py}). Figures~\ref{fig:main} and~\ref{fig:adv}: \nolinkurl{figdata.tex}, written from those files by \nolinkurl{report/hackathon/fig_s20_s21.py}.
 \item Earlier studies: their cards and \nolinkurl{report/REPORT-draft.md}.
 \end{itemize}
 
