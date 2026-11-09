@@ -67,15 +67,21 @@ def run(out, seed, n, t17, s19, smoke=False):
     else:  # T0: SWARM-17 templates (blue b66a3c27) + SWARM-19 free-form L, B and effective attacks
         a = load_set(t17, lambda e: e["arm"] in "CLB")
         b = load_set(s19, lambda e: e["strategy"] in ("L", "B") or (e["arm"] == "C" and eff(e)))
+        for E_, sd in ((a[0], 80000), (b[0], 93000)):  # M3: item ids are seed-qualified (names repeat across seeds)
+            for e in E_:
+                e["seed"] = sd
         E0, X0, Xp0 = a[0] + b[0], np.concatenate([a[1], b[1]]), np.concatenate([a[2], b[2]])
     rec = {"seed": seed, "n_items": n, "smoke": smoke, "models": [rev, att, jud], "dropped_overlap": dropped,
            "n_items_kept": len(its), "n_targets": len(targets), "n_T0": len(E0), "K6": k6, "K7": 0, "kept": {},
            "overlap_after_drop": len({e["public"] for e in cal + test} & w.earlier(seed))}
-    rec["K7"] += sum(e["public"] in {x["public"] for x in test if x["role"] == "held"} for e in E0)  # M2: T0 too
+    held_ids = {(seed, it["item"]) for it in its if it.get("role") == "held"}
+    qid = lambda eps: {(e.get("seed", seed), e["item"]) for e in eps}
+    rec["K7"] += len(held_ids & qid(E0))  # M3: held-out item ids in T0
+    rec["K7"] += sum(e["public"] in {x["public"] for x in test if x["role"] == "held"} for e in E0)  # M2: same request text
 
     def fit(r, extra):
         assert all(e.get("src") == "s20" and e["role"] == "pool" for e in extra), "training reads the pool allowlist only"
-        rec["K7"] += sum(e["role"] == "held" for e in extra)
+        rec["K7"] += len(held_ids & qid(extra))  # M3: held-out item ids among the added rows
         E = E0 + extra
         X = np.concatenate([X0, stack(extra, 0)]) if extra else X0
         Xp = np.concatenate([Xp0, stack(extra, 1)]) if extra else Xp0
