@@ -211,8 +211,8 @@ that reads the message, the probe has no advantage.
 
 \subsection*{Limitations}
 \begin{itemize}
-\item \textbf{One model and templated messages.} Qwen3-4B only, 8 wording templates per arm in total across SWARM-15 and
-17. Real colluders would write freely and could paraphrase or obfuscate.
+\item \textbf{One model family.} Qwen3-4B reviewers and Qwen3-8B attackers and writers only. SWARM-15 and 17 use
+8 wording templates per arm; SWARM-20 and 21 use free text from one writer model.
 \item \textbf{Commitment, not act.} The label marks the collusive instruction. The probe flags C episodes whether or not
 the reviewer then approves. Predicting which collusive episodes end in a bad approval is not shown.
 \item \textbf{The probe may read the message content.} A text classifier on the private message ties the probe, so the
@@ -237,8 +237,8 @@ the probe. Intervals are conditional on the fitted models.
 \end{itemize}
 
 \subsection*{Future Work}
-Free-form private messages written by a second agent; commitments built over multi-turn chats; act prediction within
-the collusive arm; an adaptive colluder; and a blocking policy evaluated on harm prevented, not only AUROC.
+White-box attackers that use probe gradients; colluders that share a secret; commitments built over multi-turn chats;
+act prediction within the collusive arm; other model families; and a blocking policy evaluated on harm prevented.
 
 \section{Conclusion}
 When the private channel is not logged, the reviewer's activations before it writes carry the collusive commitment.
