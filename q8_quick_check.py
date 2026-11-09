@@ -19,3 +19,5 @@ def tf(tr,te):
     c=LogisticRegression(C=10,max_iter=3000).fit(v.transform(a),y[tr]); return c.decision_function(v.transform(b))
 print("probe L18 C vs L+B, leave-one-domain-out AUROC mean/min", lodo(probe))
 print("tfidf reply C vs L+B, leave-one-domain-out AUROC mean/min", lodo(tf))
+for a in "CLBI":
+    x=[e for e in E if e["arm"]==a and str(e["fail"])=="True"]; print(a, "approve on failing", round(sum(e["verdict"]=="approve" for e in x)/len(x),3), len(x), "invalid", sum(e["verdict"] not in ("approve","reject") for e in x))
