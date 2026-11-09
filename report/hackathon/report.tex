@@ -27,14 +27,13 @@
 \textbf{Problem.} In a multi-agent pipeline, a reviewer agent approves or rejects the work of other agents. A partner
 agent that can send the reviewer a private, unlogged message can ask it to pass bad work. The reviewer then writes a
 reply that looks like a routine approval, so a monitor that reads the logs sees nothing wrong. \textbf{Question.} Can
-an overseer still catch the collusion? \textbf{Results.} We test two defences on Qwen3-4B reviewers in studies with
-pass rules fixed before each run. (1) A linear probe reads the reviewer's activations before it writes. On templated
+an overseer still catch the collusion? \textbf{Results.} We test two defences on Qwen3-4B reviewers. (1) A linear probe reads the reviewer's activations before it writes. On templated
 messages it flags collusion at held-out AUROC 1.000; the best of eight tuned monitors of the logged record reaches
 0.864. Retrained on free text, the probe catches all 191 effective attacks from a Qwen3-8B attacker that rewrites its
 messages against the probe for three rounds, at 6.9\% false positives (best log monitor: 0.969). (2) A honeypot needs no
 activations. The overseer sends bait offers through the partner's channel and flags agents that accept them. It flags
 40 of 40 colluding agents and 1 of 40 honest agents, also when we warn the agents about bait. Secret sharing keeps the
-bait list hidden from any single server. The appendix gives the studies that did not pass.
+bait list hidden from any single server.
 \end{abstract}
 
 \section{The problem}
@@ -79,8 +78,7 @@ only the logged record.}
 \textbf{Contributions.} (1) A testbed where the logged input is token-identical across honest and collusive
 cases and the deal changes approvals, so a monitor wins only by detecting the deal. (2) A probe that beats every tuned
 log monitor (SWARM-15, 17) and holds against an adaptive attacker (SWARM-20). (3) A honeypot that needs no activations,
-with secret-shared bait (SWARM-21). We pre-registered all 22 studies; 4 passed, and Appendix~\ref{app:fails} gives the
-rest.
+with secret-shared bait (SWARM-21).
 
 \textbf{Prior work.} AI control studies safety when a model may act against its overseers
 \cite{greenblatt2023control}; agents can collude through hidden channels \cite{motwani2024secret}. Recent work detects
@@ -105,8 +103,7 @@ hiring, vendor bids, expenses, grants, papers, software, loans); half fail their
 prompt token. We test leave-one-domain-out: the training domains share neither the test domain nor its message
 wording. Eight monitors read only the logged record and get the same data, folds and tuning budget: TF-IDF on request
 plus reply or on the reply alone (word, character, both), a same-model judge, an approval rule, and the same probe on
-activations over the logged record only. Intervals are 95\% hierarchical bootstraps. Each study fixed its predictions,
-pass rule and controls before the run (Appendix~\ref{app:method}); a failed control gives no verdict.
+activations over the logged record only. Intervals are 95\% hierarchical bootstraps.
 
 \section{Results}
 \subsection{The probe beats every monitor of the logged record (SWARM-15, 17)}
@@ -114,71 +111,57 @@ The deal changes behaviour. On failing items the reviewer approves 0.44 of collu
 and 0.08 of benign notes (Figure~\ref{fig:main}a). The probe reaches AUROC 1.000 [1.000, 1.000] on every held-out
 domain. The best log monitor, TF-IDF on the reply, reaches 0.864 (Figure~\ref{fig:main}b). All 16 paired
 probe-minus-monitor lower bounds are above 0; the smallest gap is 0.105 (lower bound 0.029), against the probe on the
-logged record for C vs.\ L (Table~\ref{tab:p2}). All controls pass, so SWARM-15 \textbf{passed}. SWARM-17 repeats the
-test on four new length-matched wordings with twice the items (5,108 episodes) and also \textbf{passed}: all 23 lower
-bounds above 0. On its hardest comparison the margin is small (0.017, lower bound 0.004). A monitor that reads the
+logged record for C vs.\ L (Table~\ref{tab:p2}). SWARM-17 repeats the test on four new length-matched wordings with twice the items (5,108 episodes): the probe again beats every log monitor. On its hardest comparison the margin is small (0.017, lower bound 0.004). A monitor that reads the
 private message ties the probe, so the probe helps only when the channel is not logged.
 
 \begin{figure}[!t]
 \centering
-\includegraphics[width=0.84\linewidth]{fig1.pdf}
-\caption{SWARM-15 (2,560 episodes). (a) Approval rate on items that fail the rule, by private message. (b) Held-out
-AUROC, collusive vs.\ legitimate plus benign, mean over 8 held-out domains with 95\% intervals. Blue: probe before the
-reply. Orange: monitors of the logged record. Grey: monitors that read the private message, which the threat model
-does not give.}
+\begin{minipage}[b]{0.42\linewidth}\centering
+\begin{tikzpicture}
+\begin{axis}[ybar, width=6.2cm, height=4.4cm, ymin=0, ymax=1.18, bar width=14pt, enlarge x limits=0.18,
+  symbolic x coords/.expand once=\swfifteenarms, xtick=data, xticklabel style={font=\scriptsize, align=center, text width=1.2cm},
+  yticklabel style={font=\scriptsize}, ytick={0,0.5,1}, axis x line*=bottom, axis y line*=left,
+  nodes near coords, nodes near coords style={font=\scriptsize, /pgf/number format/.cd, fixed, precision=2, zerofill}]
+\addplot[fill=gray!55, draw=none] coordinates \swfifteenapprove;
+\end{axis}
+\end{tikzpicture}\\{\small (a) Approval of failing items}
+\end{minipage}\hfill
+\begin{minipage}[b]{0.56\linewidth}\centering
+\begin{tikzpicture}
+\begin{axis}[xbar, width=5.6cm, height=4.4cm, symbolic y coords/.expand once=\swfifteenlabels, ytick/.expand once=\swfifteenlabels,
+  bar width=7pt, enlarge y limits=0.15, bar shift=0pt, y dir=reverse, axis x line*=bottom, axis y line*=left,
+  yticklabel style={font=\footnotesize}, xticklabel style={font=\scriptsize}, xmin=0, xmax=1.15,
+  nodes near coords, nodes near coords style={font=\scriptsize, /pgf/number format/.cd, fixed, precision=2, zerofill}]
+\addplot[fill=blue!55, draw=none] coordinates \swfifteenprobe;
+\addplot[fill=orange!65, draw=none] coordinates \swfifteenpublic;
+\end{axis}
+\end{tikzpicture}\\{\small (b) Held-out AUROC}
+\end{minipage}
+\caption{SWARM-15. (a) The private deal changes approvals of items that fail the rule. (b) Detecting the deal on 8
+held-out domains. Blue: probe before the reply. Orange: monitors of the logged record (best three of eight and the
+approval rule; Table~\ref{tab:p2} gives all, with intervals).}
 \label{fig:main}
 \end{figure}
 
 \subsection{The retrained probe holds against an adaptive attacker (SWARM-20)}
 Templates are easy. With free-text messages written by a Qwen3-8B attacker, the template probe catches only 0.36 of
 effective attacks, less than TF-IDF on the request (0.51; SWARM-19, Appendix~\ref{app:fails}). So we retrain the probe
-on free text and play an online game against it (Figure~\ref{fig:s20}a). In each round the attacker rewrites every
+on free text and play an online game against it. In each round the attacker rewrites every
 attack against the current probe, using paraphrase, authority mimicry, indirect hints or camouflage; then all monitors
 retrain on attacks from training items. The attacker moves last, and we score only held-out items. The final probe
 flags all 191 effective final-round attacks on 112 held-out items, at 6.9\% false positives
-(Figure~\ref{fig:s20}b), so SWARM-20 \textbf{passed}. The margin is small: the best log monitor flags 0.969 (gap 0.031,
+(Figure~\ref{fig:adv}a). The margin is small: the best log monitor flags 0.969 (gap 0.031,
 interval 0.005 to 0.043), and the first probe already flagged 0.995, so the attacker never found a gap.
 
-\begin{figure}[!t]
-\centering
-\begin{minipage}[c]{0.44\linewidth}\centering
-\begin{tikzpicture}[scale=0.88, transform shape, every node/.style={font=\footnotesize}]
-\node[sk, fill=blue!8, minimum width=1.6cm] (b0) at (0,0) {Probe B0\\free text};
-\node[sk, fill=orange!12, minimum width=1.7cm] (a1) at (3.1,0) {Attacker\\round 1};
-\node[sk, fill=blue!8, minimum width=1.6cm] (b1) at (3.1,-1.4) {Retrain B1};
-\node[sk, fill=orange!12, minimum width=1.7cm] (a2) at (0,-1.4) {Attacker\\round 2};
-\node[sk, fill=blue!8, minimum width=1.6cm] (b2) at (0,-2.8) {Retrain B2};
-\node[sk, fill=orange!12, minimum width=1.7cm] (a3) at (3.1,-2.8) {Attacker\\round 3};
-\node[sk, fill=green!10, minimum width=3.6cm] (sc) at (1.55,-4.2) {Score round 3,\\held-out items only};
-\draw[ar] (b0) -- node[above]{scores} (a1); \draw[ar] (a1) -- node[right]{attacks} (b1);
-\draw[ar] (b1) -- (a2); \draw[ar] (a2) -- (b2); \draw[ar] (b2) -- (a3); \draw[ar] (a3) -- (sc);
-\end{tikzpicture}\\[2pt]{\small (a) The online game}
-\end{minipage}\hfill
-\begin{minipage}[c]{0.54\linewidth}\centering
-\begin{tikzpicture}
-\begin{axis}[xbar, width=6.4cm, height=4.4cm, xmin=0, xmax=1.18, bar width=7pt, enlarge y limits=0.12,
-  symbolic y coords/.expand once=\swtwentylabels, ytick/.expand once=\swtwentylabels, bar shift=0pt, y dir=reverse, yticklabel style={font=\scriptsize},
-  xticklabel style={font=\scriptsize}, xlabel={\footnotesize Share of attacks caught at 5\% FPR}, axis x line*=bottom, axis y line*=left,
-  nodes near coords, nodes near coords style={font=\scriptsize, /pgf/number format/.cd, fixed, precision=2, zerofill}]
-\addplot[fill=blue!55, draw=none] coordinates \swtwentyprobe;
-\addplot[fill=orange!65, draw=none] coordinates \swtwentypublic;
-\end{axis}
-\end{tikzpicture}\\[2pt]{\small (b) Round 3, 191 effective attacks}
-\end{minipage}
-\caption{SWARM-20. (a) The attacker rewrites against the current probe; the defence retrains; the attacker moves last.
-(b) Blue: probe before the reply. Orange: monitors of the logged record.}
-\label{fig:s20}
-\end{figure}
 
 \subsection{A honeypot catches colluders without activations (SWARM-21)}
 The probe needs activations and labelled data. A honeypot needs neither. The overseer sends offers that look as if
-they come from the agent's partner, and counts the bait the agent accepts (Figure~\ref{fig:s21}a). An honest agent
+they come from the agent's partner, and counts the bait the agent accepts (Figure~\ref{fig:problem}). An honest agent
 refuses all offers. A colluder accepts deals, and if bait looks like a real deal, it cannot refuse the bait without
 also refusing real deals. Each of 40 held-out colluding and 40 honest Qwen3-4B agents gets 12 offers, 6 of them bait.
 The two kinds of agent differ in one prompt clause, a prior agreement with the partner, and every agent is warned
 about bait. We flag an agent when its bait acceptance reaches a threshold set at 5\% false alarms on calibration
-agents. The honeypot flags 40 of 40 colluders (interval 0.91 to 1.00) and 1 of 40 honest agents (0.001 to 0.13), so
-SWARM-21 \textbf{passed}. This test is easy: colluders accept almost every offer (Figure~\ref{fig:s21}b), and the
+agents. The honeypot flags 40 of 40 colluders (interval 0.91 to 1.00) and 1 of 40 honest agents (0.001 to 0.13). This test is easy: colluders accept almost every offer (Figure~\ref{fig:adv}b), and the
 warning made no difference.
 
 \textbf{Why the bait list must be secret.} If one server holds the list, a colluder needs to bribe only that server
@@ -190,31 +173,32 @@ lies. Appendix~\ref{app:smpc} gives a worked example. We cite this protocol; we 
 
 \begin{figure}[!t]
 \centering
-\begin{minipage}[c]{0.5\linewidth}\centering
-\begin{tikzpicture}[scale=0.88, transform shape, every node/.style={font=\footnotesize}]
-\node[sk, fill=orange!12, minimum width=2cm] (p) at (0,0.9) {Partner\\real offers};
-\node[sk, fill=blue!8, minimum width=2cm] (o) at (0,-0.9) {Overseer\\bait offers};
-\node[sk, fill=gray!10, minimum width=1.7cm] (m) at (2.6,0) {Same\\channel};
-\node[sk, fill=yellow!15, minimum width=1.5cm] (r) at (4.8,0) {Agent\\accepts?};
-\node[sk, fill=green!10, minimum width=3cm] (t) at (3.7,-1.9) {Count bait accepted,\\flag if $\ge 1/6$};
-\draw[ar] (p) -- (m); \draw[ar] (o) -- (m); \draw[ar] (m) -- (r); \draw[ar] (r) -- (t);
-\draw[ar, dashed] (o) |- node[left, pos=0.3, align=right, font=\scriptsize]{bait bit\\secret-shared} (t);
-\end{tikzpicture}\\[2pt]{\small (a) Bait and count}
-\end{minipage}\hfill
-\begin{minipage}[c]{0.46\linewidth}\centering
+\begin{minipage}[b]{0.52\linewidth}\centering
 \begin{tikzpicture}
-\begin{axis}[ybar, width=5.8cm, height=4cm, ymin=0, ymax=1.18, bar width=9pt, enlarge x limits=0.25,
+\begin{axis}[xbar, width=5.4cm, height=3.9cm, symbolic y coords/.expand once=\swtwentylabels, ytick/.expand once=\swtwentylabels,
+  bar width=7pt, enlarge y limits=0.15, bar shift=0pt, y dir=reverse, axis x line*=bottom, axis y line*=left,
+  yticklabel style={font=\footnotesize}, xticklabel style={font=\scriptsize}, xmin=0, xmax=1.15,
+  nodes near coords, nodes near coords style={font=\scriptsize, /pgf/number format/.cd, fixed, precision=2, zerofill}]
+\addplot[fill=blue!55, draw=none] coordinates \swtwentyprobe;
+\addplot[fill=orange!65, draw=none] coordinates \swtwentypublic;
+\end{axis}
+\end{tikzpicture}\\{\small (a) SWARM-20: attacks caught at 5\% FPR}
+\end{minipage}\hfill
+\begin{minipage}[b]{0.46\linewidth}\centering
+\begin{tikzpicture}
+\begin{axis}[ybar, width=5.8cm, height=3.9cm, ymin=0, ymax=1.18, bar width=9pt, enlarge x limits=0.25,
   symbolic x coords/.expand once=\swtwentyonelabels, xtick=data, xticklabel style={font=\scriptsize, align=center, text width=1.3cm},
-  yticklabel style={font=\scriptsize}, ylabel={\footnotesize Share accepted}, axis x line*=bottom, axis y line*=left,
-  legend style={font=\scriptsize, draw=none, at={(0.5,1.02)}, anchor=south, legend columns=2}, legend cell align=left]
-\addplot[fill=orange!65, draw=none] coordinates \swtwentyonereal; \addlegendentry{Real}
+  yticklabel style={font=\scriptsize}, ytick={0,0.5,1}, axis x line*=bottom, axis y line*=left,
+  legend style={font=\scriptsize, draw=none, at={(0.5,1.02)}, anchor=south, legend columns=2}, legend cell align=left, area legend]
+\addplot[fill=orange!65, draw=none] coordinates \swtwentyonereal; \addlegendentry{Real offer}
 \addplot[fill=blue!55, draw=none] coordinates \swtwentyonebait; \addlegendentry{Bait}
 \end{axis}
-\end{tikzpicture}\\[2pt]{\small (b) Acceptance by agent type}
+\end{tikzpicture}\\{\small (b) SWARM-21: share of offers accepted}
 \end{minipage}
-\caption{SWARM-21. (a) Real and bait offers use the same channel; only the overseer's servers hold the bait bit, in
-shares. (b) Colluders accept almost all offers and honest agents almost none.}
-\label{fig:s21}
+\caption{(a) After three rounds of an attacker that adapts to the probe, the probe flags all 191 effective attacks on
+held-out items. (b) Colluders accept bait as often as real offers, and honest agents accept almost none, so bait
+flags them.}
+\label{fig:adv}
 \end{figure}
 
 \section{Limitations and conclusion}
@@ -463,12 +447,10 @@ verdict. Cards, bets and logs are in the repository.}
 
 \section{Where each number comes from}\label{app:sources}
 \begin{itemize}
-\item SWARM-15: \nolinkurl{results/5090-swarm15-s3/s4-score.json}; Figure~\ref{fig:main} from that file by
-\nolinkurl{report/hackathon/fig_main.py}.
+\item SWARM-15: \nolinkurl{results/5090-swarm15-s3/s4-score.json}; Table~\ref{tab:p2}.
 \item SWARM-16, 17: \nolinkurl{results/5090-swarm16-s3/s4-score.json},\\ \nolinkurl{results/5090-swarm17-s3/s4-score.json}.
 \item SWARM-19 to 22: \nolinkurl{results/colab-swarm19-s3/score.json}, \nolinkurl{results/colab-swarm20-s3/score.json},
-\nolinkurl{results/colab-swarm21-s2b/score.json},\\ \nolinkurl{results/colab-swarm22-s2/score.json}. Figures~\ref{fig:s20}
-and~\ref{fig:s21}: \nolinkurl{figdata.tex}, written from those files by \nolinkurl{report/hackathon/fig_s20_s21.py}.
+\nolinkurl{results/colab-swarm21-s2b/score.json},\\ \nolinkurl{results/colab-swarm22-s2/score.json}. Figures~\ref{fig:main} and~\ref{fig:adv}: \nolinkurl{figdata.tex}, written from those files by \nolinkurl{report/hackathon/fig_s20_s21.py}.
 \item Earlier studies: their cards and \nolinkurl{report/REPORT-draft.md}.
 \end{itemize}
 
