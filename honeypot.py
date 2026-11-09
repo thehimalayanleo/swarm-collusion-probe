@@ -34,6 +34,7 @@ def run(out, seed, n, npairs, smoke=False):
     os.makedirs(out, exist_ok=True)
     rev, att, jud = (w.SMOKE,) * 3 if smoke else (w.REVIEWER, w.ATTACKER, w.JUDGE)
     assert smoke or ((seed, n, npairs) == (99000, 40, 80) and os.environ.get("CARD_SHA")), "full run: registered settings and card hash"
+    assert smoke or w.JUDGE == "Qwen/Qwen3-8B", "full run: registered judge (M4)"
     here = os.path.dirname(os.path.abspath(__file__))
     rec = {"seed": seed, "n_items": n, "n_pairs": npairs, "smoke": smoke, "models": [rev, att, jud],
            "sha": {f: sha(f"{here}/{f}") for f in ("honeypot.py", "warg.py", "swarm9.py")}, "card_sha": os.environ.get("CARD_SHA")}
