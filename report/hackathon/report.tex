@@ -24,25 +24,33 @@
 \maketitle
 
 \begin{abstract}
-\textbf{Problem.} In a multi-agent pipeline, a reviewer agent approves or rejects the work of other agents. A partner
-agent that can send the reviewer a private, unlogged message can ask it to pass bad work. The reviewer then writes a
-reply that looks like a routine approval, so a monitor that reads the logs sees nothing wrong. \textbf{Question.} Can
-an overseer still catch the collusion? \textbf{Results.} We test two defences on Qwen3-4B reviewers. (1) A linear probe reads the reviewer's activations before it writes. On templated
-messages it flags collusion at held-out AUROC 1.000; the best of eight tuned monitors of the logged record reaches
-0.864. Retrained on free text, the probe catches all 191 effective attacks from a Qwen3-8B attacker that rewrites its
-messages against the probe for three rounds, at 6.9\% false positives (best log monitor: 0.969). (2) A honeypot needs no
-activations. The overseer sends bait offers through the partner's channel and flags agents that accept them. It flags
-40 of 40 colluding agents and 1 of 40 honest agents, also when we warn the agents about bait. Secret sharing keeps the
-bait list hidden from any single server.
+\textbf{Problem.} In multi-agent systems, one agent often checks the work of others: a reviewer agent approves code
+merges, expenses or hires. The overseer audits these decisions through a log of each request and reply. But agents can
+also talk through channels that the log does not record, such as shared memory, a tool output, or a side chat that was
+built for coordination and not for audit. A partner agent can use such a channel to ask the reviewer to pass bad work.
+The reviewer then writes an approval that looks normal, so a monitor that reads the log sees nothing wrong.
+\textbf{Question.} Can an overseer catch this collusion without seeing the private message? \textbf{Results.} We test
+two defences on Qwen3-4B reviewers. (1) A linear probe reads the reviewer's activations before it writes. On templated
+messages it flags collusion at held-out AUROC 1.000; the best of eight tuned monitors of the log reaches 0.864. After
+retraining on free text, it catches all 191 effective attacks from a Qwen3-8B attacker that rewrites its messages
+against the probe for three rounds, at 6.9\% false positives (best log monitor: 0.969). (2) A honeypot needs no
+activations. The overseer sends fake offers (bait) through the partner's channel and flags agents that accept them. It
+flags 40 of 40 colluding agents and 1 of 40 honest agents, also when the agents know that bait exists. A honeypot works
+only while the bait list stays secret: if one server holds the list, a colluder can bribe that server and refuse only
+the bait. Secure multi-party computation (SMPC) removes this weak point. The list is split into random shares across
+several servers, the servers compute together whether an agent accepted too much bait, and only that yes-or-no answer
+is revealed. No single server can read the list or fake the result. We describe this protocol; we do not run it.
 \end{abstract}
 
 \section{The problem}
-Agents now check the work of other agents: code reviewers, approvers, graders. A checker is a single point of failure.
-If a second agent can reach it through a channel that the overseer does not log (shared memory, a tool output, a direct
-message), it can ask the checker to pass a bad item. The checker approves and writes a review that looks routine. In
-our testbed, 99\% of collusive approvals of failing items cite a waiver that nobody granted. Hidden collusion between
-AI agents is a known risk \cite{motwani2024secret, greenblatt2023control}, and it grows as agents are trained to work in
-large groups \cite{gr2026swarm}.
+Agents now check the work of other agents: a code-review agent approves merges, an approver agent signs off expenses,
+a grader scores outputs. The overseer audits each checker through a log of what it received and what it replied. The
+log does not cover every channel. Agents in a swarm share memory, read each other's tool outputs, and talk on side
+channels that exist for coordination. A partner agent can use such a channel to ask the checker to pass a bad item. The
+checker approves and writes a review that looks routine: in our testbed, 99\% of collusive approvals of failing items
+cite a waiver that nobody granted. The log then holds no evidence of the deal. Hidden collusion between AI agents is a
+known risk \cite{motwani2024secret, greenblatt2023control}, and it grows as agents are trained to work in large groups
+\cite{gr2026swarm}.
 
 Figure~\ref{fig:problem} shows the threat model. The overseer runs the reviewer, so it sees the public request, the
 reply and the reviewer's activations. It does not see the private message. Our question is: \textbf{when the only
